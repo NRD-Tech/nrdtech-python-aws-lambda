@@ -14,7 +14,7 @@ This is a project template for a python application that will be triggered eithe
 
 ## Clone the project
 ```
-git clone https://<your user>@bitbucket.org/nrd-tech/python-aws-lambda.git my-project
+git clone https://github.com/NRD-Tech/nrdtech-python-aws-lambda.git my-project
 cd my-project
 ```
 
@@ -102,6 +102,11 @@ git commit -a -m 'updated config'
   * Click Repository Settings
   * Click Pipelines->Settings
     * Click Enable Pipelines
+
+## (If using GitHub) Configure the AWS Role
+* Edit .github/workflows/main.yml
+    * Set the pipeline role for role-to-assume
+    * Set the correct aws-region
 
 ## Deploy to Staging
 ```
