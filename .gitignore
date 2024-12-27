@@ -1,0 +1,60 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# PyCharm
+.idea/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# FastAPI
+docs/
+
+# Databases
+*.db
+*.sqlite
+
+# Cache
+.cache
+.pytest_cache
+
+# Dist
+dist/
+build/
+*.egg-info/
+
+# Log
+*.log
+
+# CSV, DAT files
+*.csv
+*.dat
+
+# Docker
+.DS_Store
+*.log
+
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform/
+crash.log
+.terraform.lock.hcl
+terraform/*code_hash.txt
+terraform/backend.tf
+terraform/remote_backend.tf
+
+# Sqlite
+*.db
