@@ -1,10 +1,44 @@
-# NOTE: Do not call this directly - it is called indirectly from ./deploy_single_env.sh or ./deploy.sh
+# NOTE: Do not call this directly - it is called from ./deploy.sh
 
 #########################################################
-# Generate the backend.tf file
+# Generate the backend.tf file for app_bootstrap
 #########################################################
 
-cd terraform
+cd terraform/bootstrap
+rm -fR .terraform
+rm -fR .terraform.lock.hcl
+cat > backend.tf << EOF
+terraform {
+  backend "s3" {
+    bucket = "${TERRAFORM_STATE_BUCKET}"
+    key    = "terraform-app-${TERRAFORM_STATE_IDENT}.tfstate"
+    region = "${AWS_DEFAULT_REGION}"
+  }
+}
+EOF
+
+#########################################################
+# Run App Bootstrap Terraform
+#########################################################
+
+# Initialize terraform
+terraform init
+
+if [ "$FLAG_DESTROY" = true ] ; then
+    echo "Destroying resources..."
+    terraform destroy -auto-approve
+else
+    echo "Creating resources..."
+    terraform apply -auto-approve
+fi
+
+cd ../../
+
+#########################################################
+# Generate the backend.tf file for main
+#########################################################
+
+cd terraform/main
 rm -fR .terraform
 rm -fR .terraform.lock.hcl
 cat > backend.tf << EOF
@@ -12,6 +46,17 @@ terraform {
   backend "s3" {
     bucket = "${TERRAFORM_STATE_BUCKET}"
     key    = "terraform-${TERRAFORM_STATE_IDENT}.tfstate"
+    region = "${AWS_DEFAULT_REGION}"
+  }
+}
+EOF
+
+cat > app_bootstrap.tf << EOF
+data "terraform_remote_state" "app_bootstrap" {
+  backend = "s3"
+  config = {
+    bucket = "${TERRAFORM_STATE_BUCKET}"
+    key    = "terraform-app-${TERRAFORM_STATE_IDENT}.tfstate"
     region = "${AWS_DEFAULT_REGION}"
   }
 }

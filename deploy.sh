@@ -42,6 +42,8 @@ echo "FLAG_DESTROY: ${FLAG_DESTROY}"
 # Configure Environment
 #########################################################
 
+echo $BITBUCKET_STEP_OIDC_TOKEN > $(pwd)/web-identity-token
+
 source .env.global
 source ".env.${ENVIRONMENT}"
 
@@ -49,8 +51,6 @@ export APP_IDENT="${APP_IDENT_WITHOUT_ENV}-${ENVIRONMENT}"
 # Terraform state identifier (must be unique) | allowed characters: a-zA-Z0-9-_
 # NOTE: This can often be the same as the APP_IDENT
 export TERRAFORM_STATE_IDENT=$APP_IDENT
-
-echo $BITBUCKET_STEP_OIDC_TOKEN > $(pwd)/web-identity-token
 
 source .env.terraform
 

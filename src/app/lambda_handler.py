@@ -1,13 +1,4 @@
 import json
-import logging
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[logging.StreamHandler()],
-)
-logger = logging.getLogger(__name__)
 
 
 ##############################################################################################################
@@ -19,7 +10,7 @@ logger = logging.getLogger(__name__)
 # # EventBridge Scheduled Lambda Function Handling
 # ##############################################################################################################
 # def lambda_handler(event, context):
-#     logger.info("Hello World")
+#     print("Hello World")
     
 #     # EventBridge Handling
 #     _handle_event_from_eventbridge(event)
@@ -36,7 +27,7 @@ logger = logging.getLogger(__name__)
 # # SQS Triggered Lambda Function Handling
 # ##############################################################################################################
 # def lambda_handler(event, context):
-#     logger.info("Hello World")
+#     print("Hello World")
 
 #     # SQS Trigger Handling
 #     _handle_event_from_sqs_trigger(event)
@@ -82,7 +73,7 @@ logger = logging.getLogger(__name__)
 # heathcheck_api_router = APIRouter()
 # @heathcheck_api_router.get("/healthcheck", status_code=status.HTTP_200_OK)
 # def healthcheck():
-#     logging.info("healthcheck")
+#     print("healthcheck")
 #     return {"healthcheck": "Everything is OK!"}
 
 # app.include_router(heathcheck_api_router)

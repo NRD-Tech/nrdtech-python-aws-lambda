@@ -29,11 +29,9 @@ jobs:
       - name: Deploy to Staging
         if: github.ref == 'refs/heads/staging'
         run: |
-          chmod +x ./*.sh
-          ENVIRONMENT=staging ./deploy.sh
+          ENVIRONMENT=staging bash ./deploy.sh
 
       - name: Deploy to Production
         if: github.ref == 'refs/heads/production'
         run: |
-          chmod +x ./deploy.sh
-          ENVIRONMENT=prod ./deploy.sh
+          ENVIRONMENT=prod bash ./deploy.sh

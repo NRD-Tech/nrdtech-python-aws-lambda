@@ -4,6 +4,27 @@ resource "aws_ecr_repository" "ecr_repository" {
   force_delete = true
 }
 
+resource "aws_ecr_lifecycle_policy" "lifecycle_policy" {
+  repository = aws_ecr_repository.ecr_repository.name
+
+  policy = jsonencode({
+    rules = [
+      {
+        rulePriority = 1
+        description  = "Keep last 10 images"
+        selection    = {
+          tagStatus = "any"
+          countType = "imageCountMoreThan"
+          countNumber = 10
+        }
+        action = {
+          type = "expire"
+        }
+      }
+    ]
+  })
+}
+
 # get authorization credentials to push to ecr - this is equivalent to using aws cli to get password and logging in manually
 data "aws_ecr_authorization_token" "token" {}
 
@@ -18,9 +39,13 @@ provider "docker" {
 
 # build docker image
 resource "docker_image" "terraform_function_image" {
-  name = "${aws_ecr_repository.ecr_repository.repository_url}:latest"
+  name = "${aws_ecr_repository.ecr_repository.repository_url}"
   build {
     context = "../../."
+    tag = [
+      "${aws_ecr_repository.ecr_repository.repository_url}:latest",
+      "${aws_ecr_repository.ecr_repository.repository_url}:${filemd5(var.code_hash_file)}"
+    ]
   }
   triggers = {
     code_hash = filemd5(var.code_hash_file)
@@ -29,6 +54,20 @@ resource "docker_image" "terraform_function_image" {
 }
 
 # push image to ecr repo
-resource "docker_registry_image" "browser" {
-  name = docker_image.terraform_function_image.name
+resource "docker_registry_image" "hash_image" {
+  depends_on = [docker_image.terraform_function_image]
+  name = "${aws_ecr_repository.ecr_repository.repository_url}:${filemd5(var.code_hash_file)}"
+  triggers = {
+    code_hash = filemd5(var.code_hash_file)
+  }
+  keep_remotely = true
+}
+
+resource "docker_registry_image" "latest_image" {
+  depends_on = [docker_image.terraform_function_image]
+  name = "${aws_ecr_repository.ecr_repository.repository_url}:latest"
+  triggers = {
+    code_hash = filemd5(var.code_hash_file)
+  }
+  keep_remotely = true
 }

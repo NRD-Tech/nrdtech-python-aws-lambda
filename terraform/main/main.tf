@@ -4,17 +4,27 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 4.0"
     }
+    docker = {
+      source  = "kreuzwerker/docker"
+      version = "3.0.2"
+    }
   }
 }
 
 provider "aws" {
   region  = var.aws_region
+  default_tags {
+    tags = data.terraform_remote_state.app_bootstrap.outputs.app_tags
+  }
 }
 
 # Sometimes we specifically need us-east-1 for some resources
 provider "aws" {
   alias  = "useast1"
   region = "us-east-1"
+  default_tags {
+    tags = data.terraform_remote_state.app_bootstrap.outputs.app_tags
+  }
 }
 
 data "aws_region" "current" {}

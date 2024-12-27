@@ -31,10 +31,6 @@ variable "app_memory" {
   type        = number
 }
 
-variable "cloudwatch_namespace" {
-  type = string
-}
-
 variable "sns_topic_name" {
   type = string
 }
