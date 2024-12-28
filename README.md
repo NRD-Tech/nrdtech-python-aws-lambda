@@ -33,7 +33,8 @@ git commit -m 'init'
 ```
 # Mac
 brew install python@3.12 poetry
-
+```
+```
 # Windows
 choco install python --version=3.12 -y
 choco install poetry -y
