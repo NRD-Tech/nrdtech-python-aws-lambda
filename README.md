@@ -18,6 +18,7 @@ This is a project template for a python application that will be triggered eithe
   * Create a new repository
 * Fill in your repository name, description, and public/private setting
 * Clone your newly created repository
+* Update the License to 
 
 ## Clone and Clean the template (if NOT using GitHub)
 ```
@@ -173,6 +174,17 @@ git push --set-upstream origin production
 |                               | Unset Config: `poetry config --unset <key>`                                                |
 
 # Misc How-To's
+
+## How to use this template for a proprietary project
+This project's license (Apache License 2.0) allows for you to create proprietary code based on this template.
+
+Here are the steps to correctly do this:
+1. Keep the original LICENSE file
+2. Create a new file called LICENSE_PROPRIETARY that includes your proprietary license terms
+3. Create a NOTICE file that contains something like this:
+
+| Portions of this project are based on a template licensed under the Apache License 2.0. These portions are © NRD Tech LLC.
+All other modifications, additions, and new work are © [Your Name or Your Company] and are governed by a proprietary license as described in LICENSE_PROPRIETARY.
 
 ## How to set up to use CodeArtifact dependencies
 
