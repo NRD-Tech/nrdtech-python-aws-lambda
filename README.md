@@ -12,14 +12,17 @@ This is a project template for a python application that will be triggered eithe
 
 # Using this Template
 
-## Clone the project
+## Clone and Clean the template (if using GitHub)
+* Navigate to: https://github.com/NRD-Tech/nrdtech-python-aws-lambda.git
+* Click "Use this template" in the top right corner
+  * Create a new repository
+* Fill in your repository name, description, and public/private setting
+* Clone your newly created repository
+
+## Clone and Clean the template (if NOT using GitHub)
 ```
 git clone https://github.com/NRD-Tech/nrdtech-python-aws-lambda.git my-project
 cd my-project
-```
-
-## Initialize a new git repo for your project
-```
 rm -fR .git venv .idea
 git init
 git add .
@@ -71,6 +74,9 @@ poetry install
 # Verify Python Version in Use
 poetry env info
 ```
+
+### PyCharm Setup
+* 
 
 ## OIDC Pre-Requisite
 * You must have previously run the NRD-Tech Terraform Bootstrap template to link AWS to Bitbucket/GitHub with a Role
