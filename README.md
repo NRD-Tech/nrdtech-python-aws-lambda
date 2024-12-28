@@ -32,6 +32,9 @@ git commit -m 'init'
 1. Make sure Python 3.12 and Poetry are installed on your computer
 ```
 # Mac Terminal
+# Install brew if you haven't already
+# /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
 brew install python@3.12 poetry
 ```
 ```
