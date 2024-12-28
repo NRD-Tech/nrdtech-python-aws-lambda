@@ -44,7 +44,6 @@ choco install python --version=3.12 -y
 
 # Install Poetry
 (Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | py -
-
 ```
 2. Tell poetry to create virtual environments in the project folder
 ```
