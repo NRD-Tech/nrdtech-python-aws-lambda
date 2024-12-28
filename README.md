@@ -28,7 +28,7 @@ git commit -m 'init'
 * If you want to change the license to be proprietary follow these instructions: [Go to Proprietary Licensing Section](#how-to-use-this-template-for-a-proprietary-project)
 
 ## Dev Environment Pre-Requisites
-Make sure Python 3.12 and Poetry are installed on your computer
+1. Make sure Python 3.12 and Poetry are installed on your computer
 ```
 # Mac
 brew install python@3.12 poetry
@@ -37,14 +37,15 @@ brew install python@3.12 poetry
 choco install python --version=3.12 -y
 choco install poetry -y
 ```
+2. Tell poetry to create virtual environments in the project folder
+```
+poetry config virtualenvs.in-project true
+```
 
 ## VSCode Setup
 1. Open the folder containing the project
 2. Run the following in the terminal to set up the virtual environment
 ```
-# Set up the virtual environment in the project folder
-poetry config virtualenvs.in-project true
-
 # Assure the use of python3.12
 poetry env use python3.12
 
