@@ -31,8 +31,7 @@ git commit -m 'init'
 Make sure Python 3.12 and Poetry are installed on your computer
 ```
 # Mac
-brew install python@3.12
-brew install poetry
+brew install python@3.12 poetry
 
 # Windows
 choco install python --version=3.12 -y
