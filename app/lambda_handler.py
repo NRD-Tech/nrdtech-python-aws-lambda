@@ -6,9 +6,9 @@ import json
 ##############################################################################################################
 
 
-# ##############################################################################################################
-# # EventBridge Scheduled Lambda Function Handling
-# ##############################################################################################################
+##############################################################################################################
+# EventBridge Scheduled Lambda Function Handling
+##############################################################################################################
 def lambda_handler(event, context):
     print("Event Bridge Hello World")
     
@@ -16,6 +16,7 @@ def lambda_handler(event, context):
     _handle_event_from_eventbridge(event)
 
     return {"statusCode": 200, "body": "Done"}
+
 
 def _handle_event_from_eventbridge(event):
     # The event object contains the payload message from eventbridge
@@ -33,6 +34,7 @@ def _handle_event_from_eventbridge(event):
 #     _handle_event_from_sqs_trigger(event)
 
 #     return {"statusCode": 200, "body": "Done"}
+
 
 # def _handle_event_from_sqs_trigger(event):
 #     for record in event["Records"]:
@@ -78,6 +80,7 @@ def _handle_event_from_eventbridge(event):
 #     return {"healthcheck": "Everything is OK!"}
 
 # app.include_router(heathcheck_api_router)
+
 
 # if __name__ == "__main__":
 #     uvicorn.run(app, host="0.0.0.0", port=8080)

@@ -57,7 +57,11 @@ poetry env info
 
 ### PyCharm Setup
 1. Open the folder containing the project
-2. PyCharm should automatically detect the poetry project and offer to create the virtual environment - accept this option
+2. PyCharm should automatically detect the poetry project and offer to create the virtual environment - Click "OK"
+3. Go to PyCharm Settings -> Project -> Project Structure
+  * Mark the app folder as "Sources"
+  * Mark the tests folder as "Tests"
+  * Click "OK"
 
 ## OIDC Pre-Requisite
 * You must have previously set up the AWS Role for OIDC and S3 bucket for the Terraform state files
