@@ -31,11 +31,13 @@ git commit -m 'init'
 ## Dev Environment Pre-Requisites
 1. Make sure Python 3.12 and Poetry are installed on your computer
 ```
-# Mac
+# Mac Terminal
 brew install python@3.12 poetry
 ```
 ```
-# Windows
+# Windows PowerShell
+# Install choco if you haven't already
+# https://chocolatey.org/install
 choco install python --version=3.12 -y
 choco install poetry -y
 ```
