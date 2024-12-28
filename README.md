@@ -137,6 +137,35 @@ git push --set-upstream origin production
    * un-deploy-production
 6. Click Run
 
+# Poetry Cheat Sheet
+| **Action**                   | **Command**                                                                                  |
+|-------------------------------|----------------------------------------------------------------------------------------------|
+| **Install Poetry**            | `curl -sSL https://install.python-poetry.org | python3 -`                                   |
+|                               | `export PATH="$HOME/.local/bin:$PATH"`                                                      |
+|                               | `poetry --version`                                                                          |
+| **Initialize Project**        | New Project: `poetry new my_project`                                                        |
+|                               | Existing Project: `poetry init`                                                             |
+| **Add Dependencies**          | Regular: `poetry add requests`                                                              |
+|                               | Dev-only: `poetry add --dev pytest`                                                         |
+|                               | Specific Version: `poetry add flask@2.3.2`                                                 |
+|                               | From Git: `poetry add git+https://github.com/user/repo.git`                                  |
+|                               | With Extras: `poetry add pandas[all]`                                                      |
+| **Install Dependencies**      | `poetry install`                                                                            |
+| **Virtual Environment**       | Activate: `poetry shell`                                                                    |
+|                               | Run w/o Activate: `poetry run python script.py`                                             |
+|                               | Deactivate: `exit`                                                                          |
+| **Update Dependencies**       | Update All: `poetry update`                                                                 |
+|                               | Update Specific: `poetry update requests`                                                  |
+| **Remove Dependencies**       | `poetry remove requests`                                                                    |
+| **Lock File**                 | Regenerate: `poetry lock`                                                                   |
+| **Export Dependencies**       | `poetry export -f requirements.txt --output requirements.txt`                               |
+| **Check for Updates**         | `poetry show --outdated`                                                                    |
+| **Build & Publish**           | Build: `poetry build`                                                                       |
+|                               | Publish: `poetry publish --username <username> --password <password>`                       |
+| **Configure Poetry**          | Show Config: `poetry config --list`                                                        |
+|                               | Venv in Project: `poetry config virtualenvs.in-project true`                                |
+|                               | Unset Config: `poetry config --unset <key>`                                                |
+
 # Misc How-To's
 
 ## How to set up to use CodeArtifact dependencies
