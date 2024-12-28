@@ -9,18 +9,18 @@ import json
 # ##############################################################################################################
 # # EventBridge Scheduled Lambda Function Handling
 # ##############################################################################################################
-# def lambda_handler(event, context):
-#     print("Event Bridge Hello World")
+def lambda_handler(event, context):
+    print("Event Bridge Hello World")
     
-#     # EventBridge Handling
-#     _handle_event_from_eventbridge(event)
+    # EventBridge Handling
+    _handle_event_from_eventbridge(event)
 
-#     return {"statusCode": 200, "body": "Done"}
+    return {"statusCode": 200, "body": "Done"}
 
-# def _handle_event_from_eventbridge(event):
-#     # The event object contains the payload message from eventbridge
-#     # ... do something with it here
-#     pass
+def _handle_event_from_eventbridge(event):
+    # The event object contains the payload message from eventbridge
+    # ... do something with it here
+    pass
 
 
 # ##############################################################################################################

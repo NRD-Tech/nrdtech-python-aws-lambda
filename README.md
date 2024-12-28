@@ -1,14 +1,10 @@
 # Python AWS Lambda App
-This is a project template for a python application that will be triggered either by an Event Bridge schedule or an SQS queue
+This is a project template for a python application that will be triggered either by an Event Bridge schedule, an SQS queue, or an API Gateway endpoint
 
 # Technology Stack
 * Python 3.12
 * Docker
 * Terraform
-* AWS
-  * Lambda
-  * EventBridge
-  * ECR
 
 # Using this Template
 
@@ -30,39 +26,22 @@ git add .
 git commit -m 'init'
 ```
 
-## Configure Dev Environments
-
-### Mac Dev Environment
+## Dev Environment Pre-Requisites
+Make sure Python 3.12 and Poetry are installed on your computer
 ```
-# Install Python 3.12 and Poetry if you don't already have them installed
+# Mac
 brew install python@3.12
 brew install poetry
 
-# Create the .env file
-[ ! -f .env ] && echo "PYTHONPATH=./src" > .env
-
-# Set up the virtual environment in the project folder
-poetry config virtualenvs.in-project true
-
-# Assure the use of python3.12
-poetry env use python3.12
-
-# Set up the virtual environment and installs dependencies
-poetry install
-
-# Verify Python Version in Use
-poetry env info
-```
-
-### Windows Dev Environment
-```
-# Install Python 3.12 and Poetry if you don't already have them installed
+# Windows
 choco install python --version=3.12 -y
 choco install poetry -y
+```
 
-# Create the .env file
-if (!(Test-Path .env)) { "PYTHONPATH=./src" | Out-File -Encoding UTF8 .env }
-
+## VSCode Setup
+1. Open the folder containing the project
+2. Run the following in the terminal to set up the virtual environment
+```
 # Set up the virtual environment in the project folder
 poetry config virtualenvs.in-project true
 
@@ -77,12 +56,16 @@ poetry env info
 ```
 
 ### PyCharm Setup
-* 
+1. Open the folder containing the project
+2. PyCharm should automatically detect the poetry project and offer to create the virtual environment - accept this option
 
 ## OIDC Pre-Requisite
-* You must have previously run the NRD-Tech Terraform Bootstrap template to link AWS to Bitbucket/GitHub with a Role
-  * https://bitbucket.org/nrd-tech/bitbucket-tf-account-bootstrap/src/main/
-  * You should have an AWS Role ARN from this bootstrap as well as the terraform state bucket
+* You must have previously set up the AWS Role for OIDC and S3 bucket for the Terraform state files
+* The easiest way to do this is to use the NRD-Tech Terraform Bootstrap template
+  * https://github.com/NRD-Tech/nrdtech-terraform-aws-account-bootstrap
+  * After following the README.md instructions in the bootstrap template project you should have:
+    * An AWS Role ARN
+    * An AWS S3 bucket for the Terraform state files
 
 ## Configure Settings
 * Edit .env.global
