@@ -14,7 +14,7 @@ This is a project template for a python application that will be triggered eithe
   * Create a new repository
 * Fill in your repository name, description, and public/private setting
 * Clone your newly created repository
-* Update the License to 
+* If you want to change the license to be proprietary follow these instructions: [Go to Proprietary Licensing Section](#how-to-use-this-template-for-a-proprietary-project)
 
 ## Clone and Clean the template (if NOT using GitHub)
 ```
@@ -25,6 +25,7 @@ git init
 git add .
 git commit -m 'init'
 ```
+* If you want to change the license to be proprietary follow these instructions: [Go to Proprietary Licensing Section](#how-to-use-this-template-for-a-proprietary-project)
 
 ## Dev Environment Pre-Requisites
 Make sure Python 3.12 and Poetry are installed on your computer
