@@ -10,6 +10,7 @@ This is a project template for a python application that will be triggered eithe
 
 ## Clone and Clean the template (if using GitHub)
 * Navigate to: https://github.com/NRD-Tech/nrdtech-python-aws-lambda.git
+* Log into your GitHub account (otherwise the "Use this template" option will not show up)
 * Click "Use this template" in the top right corner
   * Create a new repository
 * Fill in your repository name, description, and public/private setting
