@@ -1,15 +1,28 @@
 name: Terraform Deployment
 
 on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Specify the environment (staging or production)"
+        required: true
+        default: "staging"
+        type: string
+      action:
+        description: "Specify the action (deploy or un-deploy)"
+        required: true
+        default: "deploy"
+        type: string
   push:
     branches:
       - production
       - staging
 
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/production'
+    if: github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/production' || github.event.inputs.action == 'deploy'
     permissions:
       id-token: write
       contents: read
@@ -20,18 +33,27 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
-          role-to-assume: arn:aws:iam::1234567890:role/github-pipelines-cd-myrole
+          role-to-assume: arn:aws:iam::011528289141:role/github-pipelines-cd-wbvwhi
           aws-region: us-west-2
 
       - name: Docker Setup Buildx
         uses: docker/setup-buildx-action@v2.0.0
 
-      - name: Deploy to Staging
-        if: github.ref == 'refs/heads/staging'
+      - name: Deploy or Un-deploy
         run: |
-          ENVIRONMENT=staging bash ./deploy.sh
-
-      - name: Deploy to Production
-        if: github.ref == 'refs/heads/production'
-        run: |
-          ENVIRONMENT=prod bash ./deploy.sh
+          if [[ "${{ github.ref }}" == "refs/heads/staging" ]]; then
+            if [[ "${{ github.event.inputs.action }}" == "un-deploy" ]]; then
+              ENVIRONMENT=staging bash ./deploy.sh -d
+            else
+              ENVIRONMENT=staging bash ./deploy.sh
+            fi
+          elif [[ "${{ github.ref }}" == "refs/heads/production" ]]; then
+            if [[ "${{ github.event.inputs.action }}" == "un-deploy" ]]; then
+              ENVIRONMENT=prod bash ./deploy.sh -d
+            else
+              ENVIRONMENT=prod bash ./deploy.sh
+            fi
+          else
+            echo "Invalid branch for deployment: ${{ github.ref }}"
+            exit 1
+          fi
