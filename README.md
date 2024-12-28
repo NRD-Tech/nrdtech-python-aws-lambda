@@ -38,8 +38,13 @@ brew install python@3.12 poetry
 # Windows PowerShell
 # Install choco if you haven't already
 # https://chocolatey.org/install
+
+# Install Python 3.12
 choco install python --version=3.12 -y
-choco install poetry -y
+
+# Install Poetry
+(Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | py -
+
 ```
 2. Tell poetry to create virtual environments in the project folder
 ```
