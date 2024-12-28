@@ -24,13 +24,8 @@ EOF
 # Initialize terraform
 terraform init
 
-if [ "$FLAG_DESTROY" = true ] ; then
-    echo "Destroying resources..."
-    terraform destroy -auto-approve
-else
-    echo "Creating resources..."
-    terraform apply -auto-approve
-fi
+echo "Creating resources..."
+terraform apply -auto-approve
 
 cd ../../
 
@@ -85,10 +80,5 @@ EOF
 # Initialize terraform
 terraform init
 
-if [ "$FLAG_DESTROY" = true ] ; then
-    echo "Destroying resources..."
-    terraform destroy -auto-approve
-else
-    echo "Creating resources..."
-    terraform apply -auto-approve
-fi
+echo "Creating resources..."
+terraform apply -auto-approve

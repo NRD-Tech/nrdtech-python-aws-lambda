@@ -46,6 +46,9 @@ resource "docker_image" "terraform_function_image" {
       "${aws_ecr_repository.ecr_repository.repository_url}:latest",
       "${aws_ecr_repository.ecr_repository.repository_url}:${filemd5(var.code_hash_file)}"
     ]
+    cache_from = [
+      "${aws_ecr_repository.ecr_repository.repository_url}:latest"
+    ]
   }
   triggers = {
     code_hash = filemd5(var.code_hash_file)

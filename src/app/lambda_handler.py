@@ -10,7 +10,7 @@ import json
 # # EventBridge Scheduled Lambda Function Handling
 # ##############################################################################################################
 # def lambda_handler(event, context):
-#     print("Hello World")
+#     print("Event Bridge Hello World")
     
 #     # EventBridge Handling
 #     _handle_event_from_eventbridge(event)
@@ -27,7 +27,7 @@ import json
 # # SQS Triggered Lambda Function Handling
 # ##############################################################################################################
 # def lambda_handler(event, context):
-#     print("Hello World")
+#     print("SQS Triggered Hello World")
 
 #     # SQS Trigger Handling
 #     _handle_event_from_sqs_trigger(event)
@@ -38,6 +38,7 @@ import json
 #     for record in event["Records"]:
 #         # Often messages are json and can be handled like this
 #         body = json.loads(record["body"])
+#         print(body)
 #         # ... do something something with this message
 
 

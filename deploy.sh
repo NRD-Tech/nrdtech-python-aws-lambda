@@ -57,4 +57,8 @@ source .env.terraform
 ####################################################################################################
 # Run Terraform
 ####################################################################################################
-./_run_terraform.sh
+if [ "$FLAG_DESTROY" = true ] ; then
+    bash ./_run_terraform_destroy.sh
+else
+    bash ./_run_terraform_create.sh
+fi

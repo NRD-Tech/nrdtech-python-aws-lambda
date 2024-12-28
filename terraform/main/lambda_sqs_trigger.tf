@@ -22,7 +22,7 @@
 
 # # Dead Letter Queue (DLQ)
 # resource "aws_sqs_queue" "dlq" {
-#   name = "${aws_sqs_queue.lambda_trigger_queue.name}-dlq"
+#   name = "lambda-trigger-queue-${var.environment}-dlq"
 # }
 
 # resource "aws_lambda_event_source_mapping" "lambda_sqs_trigger" {
@@ -31,7 +31,28 @@
 #   enabled          = true  # Set to false to disable the trigger
 
 #   batch_size = 10  # Number of messages that are sent to the lambda function at a time (min=1, max=10)
-#   maximum_batching_window_in_seconds = 5  # Max amount of time, in seconds, to gather records before invoking the function
-#   parallelization_factor = 100  # Number of messages to process simultaneously
-#   bisect_batch_on_function_error = false  # Enables the batch to be split into two and retried, which is useful for isolating a problematic message
+#   maximum_batching_window_in_seconds = 5  # Max amount of time, in seconds, to gather records before invoking the function (only works on Standard Queue's - not fifo)
+# }
+
+# resource "aws_iam_policy" "sqs_permissions_policy" {
+#   name        = "${var.app_ident}_sqs_permissions"
+#   policy      = jsonencode({
+#     Version = "2012-10-17",
+#     Statement = [
+#       {
+#         Effect = "Allow",
+#         Action = [
+#           "sqs:ReceiveMessage",
+#           "sqs:DeleteMessage",
+#           "sqs:GetQueueAttributes"
+#         ],
+#         Resource = aws_sqs_queue.lambda_trigger_queue.arn
+#       }
+#     ]
+#   })
+# }
+
+# resource "aws_iam_role_policy_attachment" "sqs_permissions_policy_attachment" {
+#   role       = aws_iam_role.lambda_exec.name
+#   policy_arn = aws_iam_policy.sqs_permissions_policy.arn
 # }

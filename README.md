@@ -87,9 +87,16 @@ poetry env info
     * SNS_TOPIC_FOR_ALARMS
       * Make sure to choose an SNS Topic that already exists and will notify your dev team of problems
 * Choose how your lambda function will be triggered and un-comment the appropriate terraform:
-  * Event Bridge Scheduling: terraform/main/lambda_eventbridge_schedule.tf
-  * SQS Triggered: terraform/main/lambda_sqs_trigger.tf
-  * API Gateway: terraform/main/lambda_api_gateway.tf
+  * Event Bridge Scheduling:
+    * Un-comment terraform/main/lambda_eventbridge_schedule.tf
+    * Edit lambda_handler.py to enable the appropriate section
+  * SQS Triggered:
+    * Un-comment terraform/main/lambda_sqs_trigger.tf
+    * Edit lambda_handler.py to enable the appropriate section
+  * API Gateway:
+    * Un-comment terraform/main/lambda_api_gateway.tf
+    * Edit lambda_handler.py to enable the appropriate section
+    * Configure the domain's in .env.prod and .env.staging
 * Commit your changes to git
 ```
 git add .
