@@ -72,6 +72,11 @@ poetry install
 # Verify Python Version in Use
 poetry env info
 ```
+3. Configure the Python Interpreter
+* Mac: Command-Shift-P -> Python: Select Interpreter
+* Windows: Control-Shift-P -> Python: Select Interpreter
+* Choose the Python in .venv/bin/python
+
 
 ### PyCharm Setup
 1. Open the folder containing the project
