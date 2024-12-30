@@ -38,15 +38,21 @@ git commit -m 'init'
 brew install python@3.12 poetry
 ```
 ```
-# Windows PowerShell
+# Windows PowerShell (run as an Administrator)
 # Install choco if you haven't already
 # https://chocolatey.org/install
 
 # Install Python 3.12
 choco install python --version=3.12 -y
 
-# Install Poetry
-(Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | py -
+# Install Poetry globally
+$env:POETRY_HOME = "C:\Program Files\Poetry"
+(Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | python -
+
+# Put Poetry and Python in the PATH
+[System.Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\Program Files\Poetry\bin", [System.EnvironmentVariableTarget]::Machine)
+
+# NOTE: You will need to open a new terminal after adding Poetry and Python to your PATH for it to take effect
 ```
 2. Tell poetry to create virtual environments in the project folder
 ```
@@ -74,6 +80,14 @@ poetry env info
   * Mark the app folder as "Sources"
   * Mark the tests folder as "Tests"
   * Click "OK"
+4. Run the following in the terminal
+```poe
+# Set up the virtual environment and installs dependencies
+poetry install
+
+# Verify Python Version in Use
+poetry env info
+```
 
 ## OIDC Pre-Requisite
 * You must have previously set up the AWS Role for OIDC and S3 bucket for the Terraform state files
