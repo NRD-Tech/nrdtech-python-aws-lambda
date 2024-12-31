@@ -2,7 +2,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 4.0"
+      version = "~> 5.81.0"
     }
     docker = {
       source  = "kreuzwerker/docker"
@@ -40,6 +40,26 @@ data "aws_subnets" "subnets" {
   filter {
     name   = "vpc-id"
     values = [data.aws_vpc.selected.id]
+  }
+}
+data "aws_subnets" "public" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.selected.id]
+  }
+  filter {
+    name   = "tag:Name"
+    values = ["*public*"]
+  }
+}
+data "aws_subnets" "private" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.selected.id]
+  }
+  filter {
+    name   = "tag:Name"
+    values = ["*private*"]
   }
 }
 

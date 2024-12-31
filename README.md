@@ -137,8 +137,8 @@ git commit -a -m 'updated config'
 
 ## (If using GitHub) Configure the AWS Role
 * Edit .github/workflows/main.yml
-    * Set the pipeline role for role-to-assume
-    * Set the correct aws-region
+  * Set the pipeline role for role-to-assume
+  * Set the correct aws-region
 
 ## Deploy to Staging
 ```
