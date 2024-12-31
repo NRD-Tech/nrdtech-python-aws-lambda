@@ -86,7 +86,7 @@ poetry env info
   * Mark the tests folder as "Tests"
   * Click "OK"
 4. Run the following in the terminal
-```poe
+```
 # Set up the virtual environment and installs dependencies
 poetry install
 
