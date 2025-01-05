@@ -31,7 +31,7 @@
 #   enabled          = true  # Set to false to disable the trigger
 
 #   batch_size = 10  # Number of messages that are sent to the lambda function at a time (min=1, max=10)
-#   maximum_batching_window_in_seconds = 5  # Max amount of time, in seconds, to gather records before invoking the function (only works on Standard Queue's - not fifo)
+#   maximum_batching_window_in_seconds = 1  # Max amount of time, in seconds, to gather records before invoking the function (only works on Standard Queue's - not fifo)
 # }
 
 # resource "aws_iam_policy" "sqs_permissions_policy" {
