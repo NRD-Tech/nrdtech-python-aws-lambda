@@ -1,4 +1,7 @@
-FROM nrdtech/aws-lambda-python312:1.0
+FROM public.ecr.aws/lambda/python:3.12
+
+# Install Poetry
+RUN curl -sSL https://install.python-poetry.org | python3 -
 
 # Copy pyproject.toml and poetry.lock for dependency installation
 COPY pyproject.toml poetry.lock ./
