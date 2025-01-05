@@ -33,7 +33,7 @@ resource "null_resource" "push_image" {
   triggers = {
     code_hash = filemd5(var.code_hash_file)
     ecr_repo = aws_ecr_repository.ecr_repository.repository_url
-    force = 5
+    force = 1
   }
 
   # NOTE: Modify the docker build command below to specify either x86_64 or ARM64
