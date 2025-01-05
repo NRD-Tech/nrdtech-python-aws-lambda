@@ -26,14 +26,14 @@ resource "aws_ecr_lifecycle_policy" "lifecycle_policy" {
 }
 
 locals {
-  docker_command = var.cpu_architecture == "ARM64" ? "docker buildx build --platform linux/arm64" : "docker build"
+  docker_command = var.cpu_architecture == "ARM64" ? "docker buildx build --platform linux/arm64  --provenance=false" : "docker build"
 }
 
 resource "null_resource" "push_image" {
   triggers = {
     code_hash = filemd5(var.code_hash_file)
     ecr_repo = aws_ecr_repository.ecr_repository.repository_url
-    force = 2
+    force = 5
   }
 
   # NOTE: Modify the docker build command below to specify either x86_64 or ARM64
@@ -58,6 +58,7 @@ resource "null_resource" "push_image" {
     # x86_64 (GitHub): docker buildx build --platform linux/amd64 \
     echo "Build the Docker Image"
     ${local.docker_command} \
+      --no-cache \
       --push \
       -t ${aws_ecr_repository.ecr_repository.repository_url}:${self.triggers.code_hash} \
       -t ${aws_ecr_repository.ecr_repository.repository_url}:latest \

@@ -19,6 +19,7 @@ resource "aws_lambda_function" "lambda_function" {
   image_uri = "${aws_ecr_repository.ecr_repository.repository_url}:${null_resource.push_image.triggers.code_hash}"
   timeout = var.app_timeout
   memory_size = var.app_memory
+  architectures = [var.cpu_architecture == "ARM64" ? "arm64" : "x86_64"]
 
   # For Custom VPC
   # Note: Use the vpc setting here if you need access to private resources like RDS

@@ -1,7 +1,4 @@
-FROM public.ecr.aws/lambda/python:3.12
-
-# Install Poetry
-RUN curl -sSL https://install.python-poetry.org | python3 -
+FROM nrdtech/aws-lambda-python312:1.0
 
 # Copy pyproject.toml and poetry.lock for dependency installation
 COPY pyproject.toml poetry.lock ./
@@ -12,7 +9,7 @@ COPY pyproject.toml poetry.lock ./
 # RUN ~/.local/bin/poetry config http-basic.mycompany aws ${CODEARTIFACT_TOKEN}
 
 # Install dependencies using Poetry (only production dependencies)
-RUN ~/.local/bin/poetry install --only main --no-dev
+RUN ~/.local/bin/poetry install --only main
 
 # Locate Poetry's virtual environment and copy dependencies to the Lambda path
 RUN VENV_PATH=$(~/.local/bin/poetry env info --path) && \

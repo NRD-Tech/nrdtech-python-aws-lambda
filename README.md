@@ -230,7 +230,7 @@ aws ecr get-login-password \
       --region us-west-2 | \
       docker login \
         --username AWS \
-        --password-stdin 482370276428.dkr.ecr.us-west-2.amazonaws.com/myapp_lambda_repository
+        --password-stdin 1234567890.dkr.ecr.us-west-2.amazonaws.com/myapp_lambda_repository
 
 docker run --rm -p 9000:8080 -it 482370276428.dkr.ecr.us-west-2.amazonaws.com/myapp_lambda_repository:latest 
 
@@ -241,5 +241,18 @@ curl -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" -d
 # How To Inspect docker image
 ```
 alias dive="docker run -ti --rm  -v /var/run/docker.sock:/var/run/docker.sock wagoodman/dive"
-dive 482370276428.dkr.ecr.us-west-2.amazonaws.com/myapp_lambda_repository:latest
+dive 1234567890.dkr.ecr.us-west-2.amazonaws.com/myapp_lambda_repository:latest
+```
+
+# How to view the architecture (and other info) of a docker image
+```
+export AWS_PROFILE=mycompanyprofile
+docker logout 1234567890.dkr.ecr.us-west-2.amazonaws.com
+aws ecr get-login-password \
+      --region us-west-2 | \
+      docker login \
+        --username AWS \
+        --password-stdin 1234567890.dkr.ecr.us-west-2.amazonaws.com/myapp_lambda_repository
+docker pull 1234567890.dkr.ecr.us-west-2.amazonaws.com/myapp_lambda_repository
+docker inspect 1234567890.dkr.ecr.us-west-2.amazonaws.com/myapp_lambda_repository:35a3db7d0a07f9f9b8b4f9b883de7362
 ```
