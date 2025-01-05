@@ -31,6 +31,11 @@ variable "app_memory" {
   type        = number
 }
 
+variable "cpu_architecture" {
+  description = "X86_64 or ARM64"
+  type = string
+}
+
 variable "sns_topic_name" {
   type = string
 }

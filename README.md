@@ -194,15 +194,11 @@ git push --set-upstream origin production
 # Misc How-To's
 
 ## How to use this template for a proprietary project
-This project's license (Apache License 2.0) allows for you to create proprietary code based on this template.
+This project's license (MIT License) allows for you to create proprietary code based on this template.
 
 Here are the steps to correctly do this:
-1. Keep the original LICENSE file
-2. Create a new file called LICENSE_PROPRIETARY that includes your proprietary license terms
-3. Create a NOTICE file that contains something like this:
-
-| Portions of this project are based on a template licensed under the Apache License 2.0. These portions are © NRD Tech LLC.
-All other modifications, additions, and new work are © [Your Name or Your Company] and are governed by a proprietary license as described in LICENSE_PROPRIETARY.
+1. Replace the LICENSE file with your proprietary license terms if you wish to use your own license.
+2. Optionally, include a NOTICE file stating that the original work is licensed under the MIT License and specify the parts of the project that are governed by your proprietary license.
 
 ## How to set up to use CodeArtifact dependencies
 

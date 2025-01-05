@@ -25,52 +25,45 @@ resource "aws_ecr_lifecycle_policy" "lifecycle_policy" {
   })
 }
 
-# get authorization credentials to push to ecr - this is equivalent to using aws cli to get password and logging in manually
-data "aws_ecr_authorization_token" "token" {}
-
-# configure docker provider
-provider "docker" {
-  registry_auth {
-      address = data.aws_ecr_authorization_token.token.proxy_endpoint
-      username = data.aws_ecr_authorization_token.token.user_name
-      password  = data.aws_ecr_authorization_token.token.password
-    }
+locals {
+  docker_command = var.cpu_architecture == "ARM64" ? "docker buildx build --platform linux/arm64" : "docker build"
 }
 
-# build docker image
-resource "docker_image" "terraform_function_image" {
-  name = "${aws_ecr_repository.ecr_repository.repository_url}"
-  build {
-    context = "../../."
-    tag = [
-      "${aws_ecr_repository.ecr_repository.repository_url}:latest",
-      "${aws_ecr_repository.ecr_repository.repository_url}:${filemd5(var.code_hash_file)}"
-    ]
-    cache_from = [
-      "${aws_ecr_repository.ecr_repository.repository_url}:latest"
-    ]
-  }
+resource "null_resource" "push_image" {
   triggers = {
     code_hash = filemd5(var.code_hash_file)
+    ecr_repo = aws_ecr_repository.ecr_repository.repository_url
+    force = 2
   }
-  platform = "linux/x86_64"
-}
 
-# push image to ecr repo
-resource "docker_registry_image" "hash_image" {
-  depends_on = [docker_image.terraform_function_image]
-  name = "${aws_ecr_repository.ecr_repository.repository_url}:${filemd5(var.code_hash_file)}"
-  triggers = {
-    code_hash = filemd5(var.code_hash_file)
-  }
-  keep_remotely = true
-}
+  # NOTE: Modify the docker build command below to specify either x86_64 or ARM64
+  #       * Bitbucket pipelines only supports x86_64
+  #       * GitHub supports both
+  provisioner "local-exec" {
+    command = <<EOF
+    set -e # Exit immediately if a command exits with a non-zero status.
+    cd ../..
 
-resource "docker_registry_image" "latest_image" {
-  depends_on = [docker_image.terraform_function_image]
-  name = "${aws_ecr_repository.ecr_repository.repository_url}:latest"
-  triggers = {
-    code_hash = filemd5(var.code_hash_file)
+    echo "Running docker build: ${path.cwd}"
+
+    echo "Log into AWS ECR Container Repository"
+    aws ecr get-login-password \
+      --region ${data.aws_region.current.name} | \
+      docker login \
+        --username AWS \
+        --password-stdin ${aws_ecr_repository.ecr_repository.repository_url}
+
+    # ARM64 (GitHub Only): docker buildx build --platform linux/arm64 \
+    # x86_64 (BitBucket): docker build \
+    # x86_64 (GitHub): docker buildx build --platform linux/amd64 \
+    echo "Build the Docker Image"
+    ${local.docker_command} \
+      --push \
+      -t ${aws_ecr_repository.ecr_repository.repository_url}:${self.triggers.code_hash} \
+      -t ${aws_ecr_repository.ecr_repository.repository_url}:latest \
+      .
+
+    sleep 10
+    EOF
   }
-  keep_remotely = true
 }
