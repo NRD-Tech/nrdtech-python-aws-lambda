@@ -3,7 +3,7 @@ name = "nrdtech-python-aws-lambda"
 version = "0.1.0"
 description = ""
 authors = ["Nic Delorme <nic.delorme@nrdtech.io>"]
-license = "Apache License 2.0"
+license = "MIT License"
 readme = "README.md"
 package-mode = false
 
