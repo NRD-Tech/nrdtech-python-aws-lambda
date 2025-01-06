@@ -254,5 +254,5 @@ aws ecr get-login-password \
         --username AWS \
         --password-stdin 1234567890.dkr.ecr.us-west-2.amazonaws.com/myapp_lambda_repository
 docker pull 1234567890.dkr.ecr.us-west-2.amazonaws.com/myapp_lambda_repository
-docker inspect 1234567890.dkr.ecr.us-west-2.amazonaws.com/myapp_lambda_repository:35a3db7d0a07f9f9b8b4f9b883de7362
+docker inspect 1234567890.dkr.ecr.us-west-2.amazonaws.com/myapp_lambda_repository
 ```
