@@ -81,6 +81,15 @@ poetry env info
 ### PyCharm Setup
 1. Open the folder containing the project
 2. PyCharm should automatically detect the poetry project and offer to create the virtual environment - Click "OK"
+  * If it doesn't, go to Settings -> Project -> Project Interpreter
+  * Click Add Interpreter -> Add Local Interpreter
+  * Configure:
+    * Engironment: Generate new
+    * Type: Poetry
+    * Base python: <path to your python 3.12>
+    * Path to poetry: <path to poetry>
+  * Click OK
+  * Note: Sometimes I need to restart PyCharm after this for it to recognize the new interpereter correctly
 3. Go to PyCharm Settings -> Project -> Project Structure
   * Mark the app folder as "Sources"
   * Mark the tests folder as "Tests"
