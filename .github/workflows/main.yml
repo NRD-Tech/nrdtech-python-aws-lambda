@@ -40,6 +40,11 @@ jobs:
           role-to-assume: arn:aws:iam::1234567890:role/pipelines-cd-abc123
           aws-region: us-west-2
 
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.10.3
+
       - name: Docker Setup Buildx
         uses: docker/setup-buildx-action@v2.0.0
 
