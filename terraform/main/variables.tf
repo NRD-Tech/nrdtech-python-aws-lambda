@@ -54,3 +54,12 @@ variable "api_domain" {
 variable "api_root_domain" {
   type = string
 }
+
+##################################################
+# Code Artifact
+##################################################
+variable "codeartifact_token" {
+  description = "CodeArtifact token for authentication"
+  type        = string
+  default = ""
+}

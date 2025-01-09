@@ -60,6 +60,7 @@ resource "null_resource" "push_image" {
     ${local.docker_command} \
       --no-cache \
       --push \
+      --build-arg CODEARTIFACT_TOKEN="${var.codeartifact_token}" \
       -t ${aws_ecr_repository.ecr_repository.repository_url}:${self.triggers.code_hash} \
       -t ${aws_ecr_repository.ecr_repository.repository_url}:latest \
       .
