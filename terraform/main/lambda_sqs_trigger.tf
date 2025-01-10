@@ -22,7 +22,7 @@
 
 # # Dead Letter Queue (DLQ)
 # resource "aws_sqs_queue" "dlq" {
-#   name = "${aws_sqs_queue.lambda_trigger_queue.name}-dlq"
+#   name = "${var.app_ident}-dlq"
 # }
 
 # resource "aws_lambda_event_source_mapping" "lambda_sqs_trigger" {
