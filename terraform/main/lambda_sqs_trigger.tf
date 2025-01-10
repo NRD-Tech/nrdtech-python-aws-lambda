@@ -7,7 +7,7 @@
 #   # Give this an name that reflects what kind of jobs it is queueing
 #   # Note: be sure to leave the environment variable in the name so you
 #   #       have different queues for staging and production
-#   name = "lambda-trigger-queue-${var.environment}"
+#   name = var.app_ident
 
 #   # Set this to the max length of time a lambda function could possibly run
 #   visibility_timeout_seconds = var.app_timeout
@@ -22,7 +22,7 @@
 
 # # Dead Letter Queue (DLQ)
 # resource "aws_sqs_queue" "dlq" {
-#   name = "lambda-trigger-queue-${var.environment}-dlq"
+#   name = "${aws_sqs_queue.lambda_trigger_queue.name}-dlq"
 # }
 
 # resource "aws_lambda_event_source_mapping" "lambda_sqs_trigger" {
