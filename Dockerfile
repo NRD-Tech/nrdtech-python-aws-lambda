@@ -21,5 +21,7 @@ RUN VENV_PATH=$(~/.local/bin/poetry env info --path) && \
 # Copy function code
 COPY app/ ${LAMBDA_TASK_ROOT}/app/
 
+ENV PYTHONPATH="${PYTHONPATH}:${LAMBDA_TASK_ROOT}:${LAMBDA_TASK_ROOT}/app"
+
 # Set the CMD to your handler
 CMD ["app.lambda_handler.lambda_handler"]
