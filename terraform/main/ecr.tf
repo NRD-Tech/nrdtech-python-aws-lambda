@@ -5,7 +5,8 @@ resource "aws_ecr_repository" "ecr_repository" {
 }
 
 resource "aws_ecr_lifecycle_policy" "lifecycle_policy" {
-  repository = aws_ecr_repository.ecr_repository.name
+  depends_on = [ aws_ecr_repository.ecr_repository ]
+  repository = "${var.app_ident}_repository"
 
   policy = jsonencode({
     rules = [
