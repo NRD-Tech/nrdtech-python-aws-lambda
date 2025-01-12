@@ -218,8 +218,9 @@ export AWS_DEFAULT_REGION=us-east-1
 export AWS_ACCOUNT_ID=1234567890
 export CODEARTIFACT_DOMAIN=mycompanydomain
 export CODEARTIFACT_REPOSITORY=mycompany-py-repo
+export AWS_PROFILE=mycompany_aws_profile
 
-export CODEARTIFACT_URL=$(AWS_PROFILE=mycompany_aws_profile aws --region $AWS_DEFAULT_REGION codeartifact get-repository-endpoint --domain $CODEARTIFACT_DOMAIN --domain-owner $AWS_ACCOUNT_ID --repository $CODEARTIFACT_REPOSITORY --format pypi --query repositoryEndpoint --output text)
+export CODEARTIFACT_URL=$(aws --region $AWS_DEFAULT_REGION codeartifact get-repository-endpoint --domain $CODEARTIFACT_DOMAIN --domain-owner $AWS_ACCOUNT_ID --repository $CODEARTIFACT_REPOSITORY --format pypi --query repositoryEndpoint --output text)
 poetry source add $CODEARTIFACT_DOMAIN $CODEARTIFACT_URL"simple" --priority=supplemental
 ```
 
@@ -228,8 +229,9 @@ poetry source add $CODEARTIFACT_DOMAIN $CODEARTIFACT_URL"simple" --priority=supp
 export AWS_DEFAULT_REGION=us-east-1
 export AWS_ACCOUNT_ID=1234567890
 export CODEARTIFACT_DOMAIN=mycompanydomain
+export AWS_PROFILE=mycompany_aws_profile
 
-export CODEARTIFACT_TOKEN=$(AWS_PROFILE=mycompany_aws_profile aws --region $AWS_DEFAULT_REGION codeartifact get-authorization-token --domain $CODEARTIFACT_DOMAIN --domain-owner $AWS_ACCOUNT_ID --query authorizationToken --output text)
+export CODEARTIFACT_TOKEN=$(aws --region $AWS_DEFAULT_REGION codeartifact get-authorization-token --domain $CODEARTIFACT_DOMAIN --domain-owner $AWS_ACCOUNT_ID --query authorizationToken --output text)
 poetry config http-basic.$CODEARTIFACT_DOMAIN aws $CODEARTIFACT_TOKEN
 ```
 
