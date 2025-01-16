@@ -6,7 +6,7 @@ This is a project template for a python application that will be triggered eithe
 * Docker
 * Terraform
 
-# Using this Template
+# Setting Up Your Development Environment
 
 ## Clone and Clean the template (if using GitHub)
 * Navigate to: https://github.com/NRD-Tech/nrdtech-python-aws-lambda.git
@@ -78,7 +78,7 @@ poetry env info
 * Choose the Python in .venv/bin/python
 
 
-### PyCharm Setup
+## PyCharm Setup
 1. Open the folder containing the project
 2. PyCharm should automatically detect the poetry project and offer to create the virtual environment - Click "OK"
   * If it doesn't, go to Settings -> Project -> Project Interpreter
@@ -102,6 +102,11 @@ poetry install
 # Verify Python Version in Use
 poetry env info
 ```
+
+At this point you should have a fully working local development environment.  The steps below this are setting up to be able to deploy the project to AWS.
+---
+
+# Configuring the App for AWS Deployment
 
 ## OIDC Pre-Requisite
 * You must have previously set up the AWS Role for OIDC and S3 bucket for the Terraform state files
