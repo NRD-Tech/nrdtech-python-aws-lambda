@@ -3,6 +3,7 @@
 # # Triggering Lambda via an EventBridge Schedule
 # ######################################################
 # resource "aws_scheduler_schedule" "scheduled-lambda-execution" {
+#   # Must be no longer than 64 characters
 #   name = "${var.app_ident}-schedule"
 
 #   flexible_time_window {
