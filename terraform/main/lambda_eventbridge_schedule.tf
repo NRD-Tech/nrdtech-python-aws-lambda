@@ -10,6 +10,9 @@
 #     mode = "OFF"
 #   }
 
+#   # NOTE: All environments except prod are disabled by default here
+#   state = var.environment == "prod" ? "ENABLED" : "DISABLED"
+
 #   # Cron Style Scheduling
 #   schedule_expression = var.environment == "prod" ? "cron(0 */3 * * ? *)" : "cron(0 */12 * * ? *)"
 
