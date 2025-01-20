@@ -36,14 +36,6 @@ variable "cpu_architecture" {
   type = string
 }
 
-variable "sns_topic_name" {
-  type = string
-}
-
-variable "alarm_after_n_minutes_without_success" {
-  type = string
-}
-
 ##################################################
 # API Gateway variables
 ##################################################
