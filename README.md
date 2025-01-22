@@ -126,6 +126,7 @@ At this point you should have a fully working local development environment.  Th
 * Choose how your lambda function will be triggered and un-comment the appropriate terraform:
   * Event Bridge Scheduling:
     * Un-comment terraform/main/lambda_eventbridge_schedule.tf
+    * Set the schedule that you want as a cron or rate in terraform/main/lambda_eventbridge_schedule.tf
     * Edit lambda_handler.py to enable the appropriate section
   * SQS Triggered:
     * Un-comment terraform/main/lambda_sqs_trigger.tf
