@@ -84,7 +84,7 @@ poetry env info
   * If it doesn't, go to Settings -> Project -> Project Interpreter
   * Click Add Interpreter -> Add Local Interpreter
   * Configure:
-    * Engironment: Generate new
+    * Environment: Generate new
     * Type: Poetry
     * Base python: <path to your python 3.12>
     * Path to poetry: <path to poetry>
