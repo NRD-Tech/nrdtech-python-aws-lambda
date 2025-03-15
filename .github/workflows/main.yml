@@ -48,21 +48,27 @@ jobs:
       - name: Docker Setup Buildx
         uses: docker/setup-buildx-action@v2.0.0
 
-      - name: Deploy or Un-deploy
+      - name: Set Script
+        id: set-script
         run: |
-          if [[ "${{ github.ref }}" == "refs/heads/staging" ]]; then
-            if [[ "${{ github.event.inputs.action }}" == "un-deploy" ]]; then
-              ENVIRONMENT=staging bash ./deploy.sh -d
-            else
-              ENVIRONMENT=staging bash ./deploy.sh
-            fi
-          elif [[ "${{ github.ref }}" == "refs/heads/production" ]]; then
-            if [[ "${{ github.event.inputs.action }}" == "un-deploy" ]]; then
-              ENVIRONMENT=prod bash ./deploy.sh -d
-            else
-              ENVIRONMENT=prod bash ./deploy.sh
-            fi
+          if [[ "${{ github.event.inputs.action }}" == "un-deploy" ]]; then
+            echo "SCRIPT=deploy.sh -d" >> $GITHUB_ENV
           else
-            echo "Invalid branch for deployment: ${{ github.ref }}"
-            exit 1
+            echo "SCRIPT=deploy.sh" >> $GITHUB_ENV
           fi
+
+      - name: Deploy to Staging
+        if: github.ref == 'refs/heads/staging'
+        # env:
+        #   TF_VAR_SECRET_DATA: ${{ secrets.SECRET_DATA_STAGING }}
+        run: |
+          chmod +x ./*.sh
+          ENVIRONMENT=staging ./${SCRIPT}
+
+      - name: Deploy to Production
+        if: github.ref == 'refs/heads/production'
+        # env:
+        #   TF_VAR_SECRET_DATA: ${{ secrets.SECRET_DATA_PROD }}
+        run: |
+          chmod +x ./*.sh
+          ENVIRONMENT=prod ./${SCRIPT}
