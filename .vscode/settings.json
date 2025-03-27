@@ -36,7 +36,7 @@
     "python.analysis.typeCheckingMode": "basic",
 
     // Environment File
-    "python.envFile": ".env",
+    "python.envFile": "${workspaceFolder}/.env",
 
     // File Exclusion Patterns
     "files.exclude": {

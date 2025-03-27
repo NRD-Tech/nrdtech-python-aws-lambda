@@ -103,6 +103,12 @@ poetry install
 poetry env info
 ```
 
+## Create your .env file
+1. Create .env in your root folder and add at least the following:
+```
+PYTHONPATH=app
+```
+
 At this point you should have a fully working local development environment.  The steps below this are setting up to be able to deploy the project to AWS.
 ---
 
