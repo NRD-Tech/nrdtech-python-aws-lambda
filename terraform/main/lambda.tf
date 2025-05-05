@@ -26,7 +26,7 @@ resource "aws_lambda_function" "lambda_function" {
   #       instances but note that accessing general internet resources will not work
   #       unless your VPC has a NAT setup.
   # vpc_config {
-  #   subnet_ids         = data.aws_subnet_ids.private.ids
+  #   subnet_ids         = data.aws_subnets.private.ids
   #   security_group_ids = [aws_security_group.lambda_sg.id]
   # }
 
