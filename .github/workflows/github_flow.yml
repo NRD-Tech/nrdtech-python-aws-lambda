@@ -17,11 +17,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.7.1
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
       - name: Install dependencies
-        run: npm install
+        run: poetry install --no-interaction --no-root
 
       - name: Run tests
-        run: npm run test:ci
+        run: poetry run pytest
 
   deploy-staging:
     needs: test
