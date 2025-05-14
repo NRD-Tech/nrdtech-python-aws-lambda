@@ -49,7 +49,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
-          role-to-assume: arn:aws:iam::559050251856:role/pipelines-cd-owdyua
+          role-to-assume: arn:aws:iam::1234567890:role/pipelines-cd-abc123
           aws-region: us-west-2
 
       - name: Install Terraform
@@ -81,7 +81,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
-          role-to-assume: arn:aws:iam::559050251856:role/pipelines-cd-owdyua
+          role-to-assume: arn:aws:iam::1234567890:role/pipelines-cd-abc123
           aws-region: us-west-2
 
       - name: Install Terraform
