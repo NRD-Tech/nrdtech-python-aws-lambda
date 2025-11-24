@@ -11,34 +11,50 @@ This is a project template for a python application that will be triggered eithe
 
 ## Scheduled App (EventBridge)
 
-1. **Configure settings:**
+1. **Enable GitHub Actions workflow:**
+   ```bash
+   # Rename the disabled workflow file to activate it
+   mv .github/workflows/github_flow.yml.disabled .github/workflows/github_flow.yml
+   ```
+
+2. **Configure settings:**
    ```bash
    # Edit config.global - set at minimum:
    # APP_IDENT_WITHOUT_ENV, TERRAFORM_STATE_BUCKET, AWS_DEFAULT_REGION, AWS_ROLE_ARN
    ```
 
-2. **Enable EventBridge trigger:**
+3. **Enable EventBridge trigger:**
    ```bash
    # Uncomment terraform/main/lambda_eventbridge_schedule.tf
    # Edit schedule_expression (cron or rate) in that file
    ```
 
-3. **Enable handler code:**
+4. **Enable handler code:**
    ```bash
    # In app/lambda_handler.py, ensure the EventBridge section is uncommented
    # (it's uncommented by default)
    ```
 
-4. **Deploy:**
+5. **Deploy:**
    ```bash
-   git checkout -b staging
-   git push --set-upstream origin staging
-   # GitHub Actions will deploy to staging automatically
+   # Push to main branch to deploy to staging
+   git push origin main
+   # GitHub Actions will automatically deploy to staging
+   
+   # To deploy to production, create a version tag:
+   # git tag v1.0.0
+   # git push origin v1.0.0
    ```
 
 ## API Gateway App
 
-1. **Configure settings:**
+1. **Enable GitHub Actions workflow:**
+   ```bash
+   # Rename the disabled workflow file to activate it
+   mv .github/workflows/github_flow.yml.disabled .github/workflows/github_flow.yml
+   ```
+
+2. **Configure settings:**
    ```bash
    # Edit config.global - set at minimum:
    # APP_IDENT_WITHOUT_ENV, TERRAFORM_STATE_BUCKET, AWS_DEFAULT_REGION, AWS_ROLE_ARN
@@ -48,48 +64,62 @@ This is a project template for a python application that will be triggered eithe
    # API_DOMAIN (e.g., api-staging.mydomain.com)
    ```
 
-2. **Enable API Gateway trigger:**
+3. **Enable API Gateway trigger:**
    ```bash
    # Uncomment terraform/main/lambda_api_gateway.tf
    ```
 
-3. **Enable handler code:**
+4. **Enable handler code:**
    ```bash
    # In app/lambda_handler.py, uncomment the API Gateway section
    # Install FastAPI dependencies: poetry add fastapi mangum uvicorn
    ```
 
-4. **Deploy:**
+5. **Deploy:**
    ```bash
-   git checkout -b staging
-   git push --set-upstream origin staging
-   # GitHub Actions will deploy to staging automatically
+   # Push to main branch to deploy to staging
+   git push origin main
+   # GitHub Actions will automatically deploy to staging
+   
+   # To deploy to production, create a version tag:
+   # git tag v1.0.0
+   # git push origin v1.0.0
    ```
 
 ## SQS Triggered App
 
-1. **Configure settings:**
+1. **Enable GitHub Actions workflow:**
+   ```bash
+   # Rename the disabled workflow file to activate it
+   mv .github/workflows/github_flow.yml.disabled .github/workflows/github_flow.yml
+   ```
+
+2. **Configure settings:**
    ```bash
    # Edit config.global - set at minimum:
    # APP_IDENT_WITHOUT_ENV, TERRAFORM_STATE_BUCKET, AWS_DEFAULT_REGION, AWS_ROLE_ARN
    ```
 
-2. **Enable SQS trigger:**
+3. **Enable SQS trigger:**
    ```bash
    # Uncomment terraform/main/lambda_sqs_trigger.tf
    # (it's already uncommented by default)
    ```
 
-3. **Enable handler code:**
+4. **Enable handler code:**
    ```bash
    # In app/lambda_handler.py, uncomment the SQS Trigger section
    ```
 
-4. **Deploy:**
+5. **Deploy:**
    ```bash
-   git checkout -b staging
-   git push --set-upstream origin staging
-   # GitHub Actions will deploy to staging automatically
+   # Push to main branch to deploy to staging
+   git push origin main
+   # GitHub Actions will automatically deploy to staging
+   
+   # To deploy to production, create a version tag:
+   # git tag v1.0.0
+   # git push origin v1.0.0
    ```
 
 ---
@@ -250,20 +280,70 @@ git commit -a -m 'updated config'
   * Click Pipelines->Settings
     * Click Enable Pipelines
 
-## (If using GitHub) Configure the AWS Role
-* Edit .github/workflows/main.yml
-  * Set the pipeline role for role-to-assume
-    * This should be the same as the AWS_ROLE_ARN in your config.global
-  * Set the correct aws-region
+## (If using GitHub) Enable and Configure GitHub Actions
+
+### Choosing a Workflow
+
+This template includes two GitHub Actions workflows:
+
+**GitHub Flow (Recommended)** - `.github/workflows/github_flow.yml.disabled`
+- **Deployment Model**: Main branch → Staging, Git tags (v*) → Production
+- **Workflow**: 
+  - Pushes to `main` branch automatically deploy to staging
+  - Creating a git tag starting with `v` (e.g., `v1.0.0`) automatically deploys to production
+  - Includes automated testing on pull requests
+- **Best For**: Modern CI/CD practices, teams using semantic versioning, automated deployments
+- **Configuration**: Automatically reads `AWS_ROLE_ARN` and `AWS_DEFAULT_REGION` from `config.global`
+
+**Legacy Branch-Based** - `.github/workflows/nrdtech_legacy.yml.disabled`
+- **Deployment Model**: Separate branches (`staging`, `production`) with manual workflow dispatch
+- **Workflow**:
+  - Pushes to `staging` branch deploy to staging
+  - Pushes to `production` branch deploy to production
+  - Supports manual workflow dispatch with deploy/un-deploy options
+- **Best For**: Teams requiring manual control, separate long-lived branches, or existing branch-based workflows
+- **Configuration**: Requires hardcoding AWS role ARN and region in the workflow file
+
+### Enable Your Chosen Workflow
+
+**For GitHub Flow (Recommended):**
+```bash
+mv .github/workflows/github_flow.yml.disabled .github/workflows/github_flow.yml
+```
+
+**For Legacy Branch-Based:**
+```bash
+mv .github/workflows/nrdtech_legacy.yml.disabled .github/workflows/nrdtech_legacy.yml
+# Edit the workflow file to set your AWS_ROLE_ARN and AWS_DEFAULT_REGION
+```
+
+**Note**: Only enable one workflow at a time. The workflow automatically reads `AWS_ROLE_ARN` and `AWS_DEFAULT_REGION` from `config.global` (GitHub Flow only).
 
 ## Deploy to Staging
+
+**For GitHub Flow workflow:**
+```bash
+# Push to main branch - automatically deploys to staging
+git push origin main
 ```
+
+**For Legacy Branch-Based workflow:**
+```bash
 git checkout -b staging
 git push --set-upstream origin staging
 ```
 
 ## Deploy to Production
+
+**For GitHub Flow workflow:**
+```bash
+# Create and push a version tag - automatically deploys to production
+git tag v1.0.0
+git push origin v1.0.0
 ```
+
+**For Legacy Branch-Based workflow:**
+```bash
 git checkout -b production
 git push --set-upstream origin production
 ```

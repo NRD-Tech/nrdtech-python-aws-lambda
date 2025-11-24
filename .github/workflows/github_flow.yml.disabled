@@ -111,4 +111,5 @@ jobs:
         #   TF_VAR_SECRET_DATA: ${{ secrets.SECRET_DATA_PROD }}
         run: |
           chmod +x ./*.sh
-          ENVIRONMENT=prod ./deploy.sh 
+          ENVIRONMENT=prod ./deploy.sh
+
