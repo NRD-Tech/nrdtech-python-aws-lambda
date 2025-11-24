@@ -35,7 +35,13 @@ This is a project template for a python application that will be triggered eithe
    # (it's uncommented by default)
    ```
 
-5. **Deploy:**
+5. **Verify tests pass:**
+   ```bash
+   poetry run pytest
+   # The EventBridge test should pass
+   ```
+
+6. **Deploy:**
    ```bash
    # Push to main branch to deploy to staging
    git push origin main
@@ -75,7 +81,13 @@ This is a project template for a python application that will be triggered eithe
    # Install FastAPI dependencies: poetry add fastapi mangum uvicorn
    ```
 
-5. **Deploy:**
+5. **Verify tests pass:**
+   ```bash
+   poetry run pytest
+   # The API Gateway test should pass
+   ```
+
+6. **Deploy:**
    ```bash
    # Push to main branch to deploy to staging
    git push origin main
@@ -111,7 +123,13 @@ This is a project template for a python application that will be triggered eithe
    # In app/lambda_handler.py, uncomment the SQS Trigger section
    ```
 
-5. **Deploy:**
+5. **Verify tests pass:**
+   ```bash
+   poetry run pytest
+   # The SQS test should pass
+   ```
+
+6. **Deploy:**
    ```bash
    # Push to main branch to deploy to staging
    git push origin main
@@ -236,6 +254,8 @@ At this point you should have a fully working local development environment.  Th
 ```
 poetry run pytest
 ```
+
+**Note on Testing**: The test suite includes unit tests for all three handler types (EventBridge, SQS, and API Gateway). Tests automatically skip handlers that aren't currently active (commented out). When you switch handlers in `lambda_handler.py`, the corresponding test will run. All tests must pass for deployment to succeed.
 ---
 
 # Configuring the App for AWS Deployment
