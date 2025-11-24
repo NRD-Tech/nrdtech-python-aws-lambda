@@ -6,6 +6,8 @@ on:
       - main
     tags:
       - 'v*'
+      - 'destroy-staging-*'
+      - 'destroy-prod-*'
   pull_request:
     branches:
       - main
@@ -38,7 +40,9 @@ jobs:
   deploy-staging:
     needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: |
+      github.ref == 'refs/heads/main' &&
+      !startsWith(github.ref, 'refs/tags/destroy-')
     permissions:
       id-token: write
       contents: read
@@ -77,7 +81,9 @@ jobs:
   deploy-production:
     needs: test
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: |
+      startsWith(github.ref, 'refs/tags/v') &&
+      !startsWith(github.ref, 'refs/tags/destroy-')
     permissions:
       id-token: write
       contents: read
@@ -112,4 +118,76 @@ jobs:
         run: |
           chmod +x ./*.sh
           ENVIRONMENT=prod ./deploy.sh
+
+  destroy-staging:
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/destroy-staging-')
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Load configuration
+        id: config
+        run: |
+          source config.global
+          echo "aws-role-arn=$AWS_ROLE_ARN" >> $GITHUB_OUTPUT
+          echo "aws-region=$AWS_DEFAULT_REGION" >> $GITHUB_OUTPUT
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ steps.config.outputs.aws-role-arn }}
+          aws-region: ${{ steps.config.outputs.aws-region }}
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.10.3
+
+      - name: Docker Setup Buildx
+        uses: docker/setup-buildx-action@v2.0.0
+
+      - name: Destroy Staging
+        run: |
+          chmod +x ./*.sh
+          ENVIRONMENT=staging ./deploy.sh -d
+
+  destroy-production:
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/destroy-prod-')
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Load configuration
+        id: config
+        run: |
+          source config.global
+          echo "aws-role-arn=$AWS_ROLE_ARN" >> $GITHUB_OUTPUT
+          echo "aws-region=$AWS_DEFAULT_REGION" >> $GITHUB_OUTPUT
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ steps.config.outputs.aws-role-arn }}
+          aws-region: ${{ steps.config.outputs.aws-region }}
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.10.3
+
+      - name: Docker Setup Buildx
+        uses: docker/setup-buildx-action@v2.0.0
+
+      - name: Destroy Production
+        run: |
+          chmod +x ./*.sh
+          ENVIRONMENT=prod ./deploy.sh -d
 

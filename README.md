@@ -39,7 +39,7 @@ echo "PYTHONPATH=app" > .env
 4. **Enable handler code and test:**
    ```bash
    # Enable the EventBridge handler
-   mv app/lambda_handler_eventbridge.disabled app/lambda_handler.py
+   mv app/lambda_handler_eventbridge.py.disabled app/lambda_handler.py
    
    # Enable the corresponding test
    mv tests/unit/app/lambda_handler_test_eventbridge.py.disabled tests/unit/app/lambda_handler_test_eventbridge.py
@@ -88,7 +88,7 @@ echo "PYTHONPATH=app" > .env
 4. **Enable handler code and test:**
    ```bash
    # Enable the API Gateway handler
-   mv app/lambda_handler_api_gateway.disabled app/lambda_handler.py
+   mv app/lambda_handler_api_gateway.py.disabled app/lambda_handler.py
    
    # Enable the corresponding test
    mv tests/unit/app/lambda_handler_test_api_gateway.py.disabled tests/unit/app/lambda_handler_test_api_gateway.py
@@ -137,7 +137,7 @@ echo "PYTHONPATH=app" > .env
 4. **Enable handler code and test:**
    ```bash
    # Enable the SQS handler
-   mv app/lambda_handler_sqs.disabled app/lambda_handler.py
+   mv app/lambda_handler_sqs.py.disabled app/lambda_handler.py
    
    # Enable the corresponding test
    mv tests/unit/app/lambda_handler_test_sqs.py.disabled tests/unit/app/lambda_handler_test_sqs.py
@@ -266,24 +266,24 @@ poetry env info
 
 ## Enabling a Lambda Handler
 
-When starting a new project, you need to enable one of the three handler types. Each handler is provided as a separate file with a `.disabled` extension:
+When starting a new project, you need to enable one of the three handler types. Each handler is provided as a separate file with a `.py.disabled` extension:
 
-- `app/lambda_handler_eventbridge.disabled` - For EventBridge scheduled functions
-- `app/lambda_handler_sqs.disabled` - For SQS-triggered functions
-- `app/lambda_handler_api_gateway.disabled` - For API Gateway functions
+- `app/lambda_handler_eventbridge.py.disabled` - For EventBridge scheduled functions
+- `app/lambda_handler_sqs.py.disabled` - For SQS-triggered functions
+- `app/lambda_handler_api_gateway.py.disabled` - For API Gateway functions
 
 To enable a handler:
 
-1. **Rename the desired handler file** to remove the `.disabled` extension:
+1. **Rename the desired handler file** to remove the `.py.disabled` extension:
    ```bash
    # For EventBridge
-   mv app/lambda_handler_eventbridge.disabled app/lambda_handler.py
+   mv app/lambda_handler_eventbridge.py.disabled app/lambda_handler.py
    
    # For SQS
-   mv app/lambda_handler_sqs.disabled app/lambda_handler.py
+   mv app/lambda_handler_sqs.py.disabled app/lambda_handler.py
    
    # For API Gateway
-   mv app/lambda_handler_api_gateway.disabled app/lambda_handler.py
+   mv app/lambda_handler_api_gateway.py.disabled app/lambda_handler.py
    ```
 
 2. **Enable the corresponding test file** by removing the `.disabled` extension:
@@ -335,15 +335,15 @@ poetry run pytest
   * Event Bridge Scheduling:
     * Un-comment terraform/main/lambda_eventbridge_schedule.tf
     * Set the schedule that you want as a cron or rate in terraform/main/lambda_eventbridge_schedule.tf
-    * Enable the handler: `mv app/lambda_handler_eventbridge.disabled app/lambda_handler.py`
+    * Enable the handler: `mv app/lambda_handler_eventbridge.py.disabled app/lambda_handler.py`
     * Enable the test: `mv tests/unit/app/lambda_handler_test_eventbridge.py.disabled tests/unit/app/lambda_handler_test_eventbridge.py`
   * SQS Triggered:
     * Un-comment terraform/main/lambda_sqs_trigger.tf
-    * Enable the handler: `mv app/lambda_handler_sqs.disabled app/lambda_handler.py`
+    * Enable the handler: `mv app/lambda_handler_sqs.py.disabled app/lambda_handler.py`
     * Enable the test: `mv tests/unit/app/lambda_handler_test_sqs.py.disabled tests/unit/app/lambda_handler_test_sqs.py`
   * API Gateway:
     * Un-comment terraform/main/lambda_api_gateway.tf
-    * Enable the handler: `mv app/lambda_handler_api_gateway.disabled app/lambda_handler.py`
+    * Enable the handler: `mv app/lambda_handler_api_gateway.py.disabled app/lambda_handler.py`
     * Enable the test: `mv tests/unit/app/lambda_handler_test_api_gateway.py.disabled tests/unit/app/lambda_handler_test_api_gateway.py`
     * Configure the domain's in config.prod and config.staging
 * Commit your changes to git

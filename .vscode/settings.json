@@ -49,6 +49,8 @@
 
     // File Associations
     "files.associations": {
-        "config.*": "shellscript"
+        "config.*": "shellscript",
+        "*.yml.disabled": "yaml",
+        "*.py.disabled": "python"
     }
 }
