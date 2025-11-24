@@ -46,11 +46,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Load configuration
+        id: config
+        run: |
+          source config.global
+          echo "aws-role-arn=$AWS_ROLE_ARN" >> $GITHUB_OUTPUT
+          echo "aws-region=$AWS_DEFAULT_REGION" >> $GITHUB_OUTPUT
+
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v3
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::1234567890:role/pipelines-cd-abc123
-          aws-region: us-west-2
+          role-to-assume: ${{ steps.config.outputs.aws-role-arn }}
+          aws-region: ${{ steps.config.outputs.aws-region }}
 
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v2
@@ -78,11 +85,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Load configuration
+        id: config
+        run: |
+          source config.global
+          echo "aws-role-arn=$AWS_ROLE_ARN" >> $GITHUB_OUTPUT
+          echo "aws-region=$AWS_DEFAULT_REGION" >> $GITHUB_OUTPUT
+
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v3
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::1234567890:role/pipelines-cd-abc123
-          aws-region: us-west-2
+          role-to-assume: ${{ steps.config.outputs.aws-role-arn }}
+          aws-region: ${{ steps.config.outputs.aws-region }}
 
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v2

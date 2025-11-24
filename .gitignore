@@ -60,3 +60,5 @@ terraform/bootstrap/backend.tf
 
 # Sqlite
 *.db
+
+.coverage

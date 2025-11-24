@@ -11,7 +11,7 @@ import json
 ##############################################################################################################
 def lambda_handler(event, context):
     print("Event Bridge Hello World")
-    
+
     # EventBridge Handling
     _handle_event_from_eventbridge(event)
 

@@ -15,23 +15,23 @@ terraform {
   }
 }
 
-variable "aws_region" {
+variable "AWS_REGION" {
   type = string
 }
 
-variable "app_ident" {
+variable "APP_IDENT" {
   description = "Identifier of the application"
   type        = string
 }
 
 provider "aws" {
   alias  = "app_registration"
-  region = var.aws_region
+  region = var.AWS_REGION
 }
 
 resource "aws_servicecatalogappregistry_application" "app" {
   provider = aws.app_registration
-  name     = var.app_ident
+  name     = var.APP_IDENT
 }
 
 output "app_tags" {

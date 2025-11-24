@@ -2,8 +2,10 @@
 # Configuration
 #########################################################
 # Used to identify the application in AWS resources | allowed characters: a-zA-Z0-9-_
-# NOTE: Max length is 20 characters
-export APP_IDENT_WITHOUT_ENV=myapp
+# NOTE: This must be no longer than 20 characters long
+export APP_IDENT_WITHOUT_ENV=my-test-project
+export APP_IDENT="${APP_IDENT_WITHOUT_ENV}-${ENVIRONMENT}"
+export TERRAFORM_STATE_IDENT=$APP_IDENT
 
 # This is the AWS S3 bucket in which you are storing your terraform state files
 # - This must exist before deploying
@@ -23,6 +25,8 @@ export APP_MEMORY=128  # memory in MB
 
 # Must be one of these: X86_64, ARM64
 # NOTE: Only GitHub supports ARM64 builds - Bitbucket doesn't
+# NOTE2: In GitHub the build by default will be slow on ARM64. To speed this up,
+#        create an ARM64 GitHub-hosted runner and use that instead.
 export CPU_ARCHITECTURE=X86_64
 
 # For Custom VPC

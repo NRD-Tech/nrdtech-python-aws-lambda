@@ -13,13 +13,13 @@
 
 resource "aws_lambda_function" "lambda_function" {
   depends_on = [null_resource.push_image]
-  function_name = var.app_ident
+  function_name = var.APP_IDENT
   role          = aws_iam_role.lambda_exec.arn
   package_type  = "Image"
   image_uri = "${aws_ecr_repository.ecr_repository.repository_url}:${null_resource.push_image.triggers.code_hash}"
-  timeout = var.app_timeout
-  memory_size = var.app_memory
-  architectures = [var.cpu_architecture == "ARM64" ? "arm64" : "x86_64"]
+  timeout = var.APP_TIMEOUT
+  memory_size = var.APP_MEMORY
+  architectures = [var.CPU_ARCHITECTURE == "ARM64" ? "arm64" : "x86_64"]
 
   # For Custom VPC
   # Note: Use the vpc setting here if you need access to private resources like RDS
@@ -32,14 +32,14 @@ resource "aws_lambda_function" "lambda_function" {
 
   environment {
     variables = {
-      ENVIRONMENT = var.environment,
-      APP_IDENT = var.app_ident
+      ENVIRONMENT = var.ENVIRONMENT,
+      APP_IDENT = var.APP_IDENT
     }
   }
 }
 
 resource "aws_iam_role" "lambda_exec" {
-  name = "${var.app_ident}_lambda_exec_role"
+  name = "${var.APP_IDENT}_lambda_exec_role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
@@ -61,7 +61,7 @@ resource "aws_iam_role_policy_attachment" "lambda_exec_policy" {
 }
 
 resource "aws_iam_policy" "lambda_policy" {
-  name        = "${var.app_ident}_Policy"
+  name        = "${var.APP_IDENT}_Policy"
   policy      = <<EOF
 {
   "Version": "2012-10-17",

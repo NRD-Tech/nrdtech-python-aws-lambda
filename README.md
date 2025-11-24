@@ -103,8 +103,8 @@ poetry install
 poetry env info
 ```
 
-## Create your .env file
-1. Create .env in your root folder and add at least the following:
+## Create your config file
+1. Create config in your root folder and add at least the following:
 ```
 PYTHONPATH=app
 ```
@@ -123,7 +123,7 @@ At this point you should have a fully working local development environment.  Th
     * An AWS S3 bucket for the Terraform state files
 
 ## Configure Settings
-* Edit .env.global
+* Edit config.global
   * Each config is a little different per application but at a minimum you will need to change:
     * APP_IDENT_WITHOUT_ENV
     * TERRAFORM_STATE_BUCKET
@@ -140,7 +140,7 @@ At this point you should have a fully working local development environment.  Th
   * API Gateway:
     * Un-comment terraform/main/lambda_api_gateway.tf
     * Edit lambda_handler.py to enable the appropriate section
-    * Configure the domain's in .env.prod and .env.staging
+    * Configure the domain's in config.prod and config.staging
 * Commit your changes to git
 ```
 git add .
@@ -157,7 +157,7 @@ git commit -a -m 'updated config'
 ## (If using GitHub) Configure the AWS Role
 * Edit .github/workflows/main.yml
   * Set the pipeline role for role-to-assume
-    * This should be the same as the AWS_ROLE_ARN in your .env.global
+    * This should be the same as the AWS_ROLE_ARN in your config.global
   * Set the correct aws-region
 
 ## Deploy to Staging

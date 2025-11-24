@@ -8,7 +8,7 @@ terraform {
 }
 
 provider "aws" {
-  region  = var.aws_region
+  region  = var.AWS_REGION
   default_tags {
     tags = data.terraform_remote_state.app_bootstrap.outputs.app_tags
   }

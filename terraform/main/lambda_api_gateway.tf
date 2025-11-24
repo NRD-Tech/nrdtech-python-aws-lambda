@@ -1,8 +1,8 @@
 # # 1. Create the API Gateway REST API
 
 # resource "aws_api_gateway_rest_api" "api" {
-#   name        = "${var.app_ident}_api"
-#   description = "API for ${var.app_ident} application"
+#   name        = "${var.APP_IDENT}_api"
+#   description = "API for ${var.APP_IDENT} application"
 #   endpoint_configuration {
 #     types = ["REGIONAL"]
 #   }
@@ -51,7 +51,7 @@
 # # 6. Deploy the API to an API Gateway stage, such as "v1".
 
 # locals {
-#   api_stage_name = var.environment
+#   api_stage_name = var.ENVIRONMENT
 # }
 
 # resource "aws_api_gateway_deployment" "deployment" {
@@ -74,7 +74,7 @@
 # }
 
 # resource "aws_api_gateway_domain_name" "custom_domain" {
-#   domain_name = var.api_domain
+#   domain_name = var.API_DOMAIN
 #   certificate_arn = aws_acm_certificate.cert.arn
 
 #   depends_on = [aws_acm_certificate_validation.cert_validation]
@@ -82,7 +82,7 @@
 
 # resource "aws_acm_certificate" "cert" {
 #   provider = aws.useast1
-#   domain_name       = var.api_domain
+#   domain_name       = var.API_DOMAIN
 #   validation_method = "DNS"
 
 #   tags = {
@@ -120,7 +120,7 @@
 # }
 
 # data "aws_route53_zone" "api_domain" {
-#   name = "${var.api_root_domain}."
+#   name = "${var.API_ROOT_DOMAIN}."
 # }
 
 # resource "aws_api_gateway_base_path_mapping" "mapping" {
@@ -133,7 +133,7 @@
 
 # resource "aws_route53_record" "api_gateway" {
 #   zone_id = data.aws_route53_zone.api_domain.zone_id
-#   name    = var.api_domain
+#   name    = var.API_DOMAIN
 #   type    = "A"
 
 #   alias {
@@ -192,7 +192,7 @@
 # ####################################################################################
 
 # resource "aws_cloudwatch_log_group" "api_gateway_log_group" {
-#   name = "/aws/apigateway/${var.app_ident}_api"
+#   name = "/aws/apigateway/${var.APP_IDENT}_api"
 #   retention_in_days = 3  # You can adjust this value as needed
 # }
 
@@ -233,7 +233,7 @@
 # }
 
 # resource "aws_iam_role" "api_gateway_cloudwatch_role" {
-#   name = "${var.app_ident}_api_gateway_cw_role"
+#   name = "${var.APP_IDENT}_api_gateway_cw_role"
 
 #   assume_role_policy = jsonencode({
 #     Version = "2012-10-17",
@@ -250,7 +250,7 @@
 # }
 
 # resource "aws_iam_role_policy" "api_gateway_cloudwatch_policy" {
-#   name   = "${var.app_ident}_api_gateway_cw_policy"
+#   name   = "${var.APP_IDENT}_api_gateway_cw_policy"
 #   role   = aws_iam_role.api_gateway_cloudwatch_role.id
 #   policy = data.aws_iam_policy_document.api_gateway_cloudwatch_policy.json
 # }

@@ -44,15 +44,25 @@ echo "FLAG_DESTROY: ${FLAG_DESTROY}"
 
 echo $BITBUCKET_STEP_OIDC_TOKEN > $(pwd)/web-identity-token
 
-source .env.global
-source ".env.${ENVIRONMENT}"
+source config.global
+source "config.${ENVIRONMENT}"
 
-export APP_IDENT="${APP_IDENT_WITHOUT_ENV}-${ENVIRONMENT}"
-# Terraform state identifier (must be unique) | allowed characters: a-zA-Z0-9-_
-# NOTE: This can often be the same as the APP_IDENT
-export TERRAFORM_STATE_IDENT=$APP_IDENT
+#########################################################
+# Export all environment variables to Terraform
+#########################################################
+echo "Exporting all environment variables to Terraform..."
 
-source .env.terraform
+# Use process substitution to avoid subshell
+while IFS='=' read -r var_name var_value; do
+  # Skip variables that already have TF_VAR_ prefix
+  if [[ "$var_name" != TF_VAR_* ]]; then
+    export "TF_VAR_${var_name}"="${var_value}"
+    escaped_value="${var_value//\'/\'\\\'\'}"
+    echo "Exported TF_VAR_${var_name}='${escaped_value}'"  # Debug log
+  else
+    echo "Skipped ${var_name} (already has TF_VAR_ prefix)"  # Debug log
+  fi
+done < <(printenv)
 
 ####################################################################################################
 # Run Terraform

@@ -1,12 +1,12 @@
 resource "aws_ecr_repository" "ecr_repository" {
-  name = "${var.app_ident}_repository"
+  name = "${var.APP_IDENT}_repository"
   image_tag_mutability = "MUTABLE"
   force_delete = true
 }
 
 resource "aws_ecr_lifecycle_policy" "lifecycle_policy" {
   depends_on = [ aws_ecr_repository.ecr_repository ]
-  repository = "${var.app_ident}_repository"
+  repository = "${var.APP_IDENT}_repository"
 
   policy = jsonencode({
     rules = [
@@ -27,12 +27,12 @@ resource "aws_ecr_lifecycle_policy" "lifecycle_policy" {
 }
 
 locals {
-  docker_command = var.cpu_architecture == "ARM64" ? "docker buildx build --platform linux/arm64  --provenance=false" : "docker build"
+  docker_command = var.CPU_ARCHITECTURE == "ARM64" ? "docker buildx build --platform linux/arm64  --provenance=false" : "docker build"
 }
 
 resource "null_resource" "push_image" {
   triggers = {
-    code_hash = filemd5(var.code_hash_file)
+    code_hash = filemd5(var.CODE_HASH_FILE)
     ecr_repo = aws_ecr_repository.ecr_repository.repository_url
     force = 1
   }
@@ -61,7 +61,7 @@ resource "null_resource" "push_image" {
     ${local.docker_command} \
       --no-cache \
       --push \
-      --build-arg CODEARTIFACT_TOKEN="${var.codeartifact_token}" \
+      --build-arg CODEARTIFACT_TOKEN="${var.CODEARTIFACT_TOKEN}" \
       -t ${aws_ecr_repository.ecr_repository.repository_url}:${self.triggers.code_hash} \
       -t ${aws_ecr_repository.ecr_repository.repository_url}:latest \
       .

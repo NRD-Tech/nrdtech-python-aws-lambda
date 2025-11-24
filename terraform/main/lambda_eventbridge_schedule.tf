@@ -4,20 +4,20 @@
 # ######################################################
 # resource "aws_scheduler_schedule" "scheduled-lambda-execution" {
 #   # Must be no longer than 64 characters
-#   name = "${var.app_ident}-schedule"
+#   name = "${var.APP_IDENT}-schedule"
 
 #   flexible_time_window {
 #     mode = "OFF"
 #   }
 
 #   # NOTE: All environments except prod are disabled by default here
-#   state = var.environment == "prod" ? "ENABLED" : "DISABLED"
+#   state = var.ENVIRONMENT == "prod" ? "ENABLED" : "DISABLED"
 
 #   # Cron Style Scheduling
-#   schedule_expression = var.environment == "prod" ? "cron(0 */3 * * ? *)" : "cron(0 */12 * * ? *)"
+#   schedule_expression = var.ENVIRONMENT == "prod" ? "cron(0 */3 * * ? *)" : "cron(0 */12 * * ? *)"
 
 #   # Rate Style Scheduling
-#   # schedule_expression = var.environment == "prod" ? "rate(3 hour)" : "rate(12 hour)"
+#   # schedule_expression = var.ENVIRONMENT == "prod" ? "rate(3 hour)" : "rate(12 hour)"
 
 #   target {
 #     arn      = aws_lambda_function.lambda_function.arn
@@ -27,7 +27,7 @@
 # }
 
 # resource "aws_iam_role" "eventbridge_schedule_role" {
-#   name = "${var.app_ident}-EBScheduleRole"
+#   name = "${var.APP_IDENT}-EBScheduleRole"
 #   assume_role_policy = <<EOF
 # {
 #   "Version": "2012-10-17",
@@ -46,7 +46,7 @@
 # }
 
 # resource "aws_iam_role_policy" "eventbridge_schedule_policy" {
-#   name = "${var.app_ident}-EBScheduledLambdaPolicy"
+#   name = "${var.APP_IDENT}-EBScheduledLambdaPolicy"
 #   role = aws_iam_role.eventbridge_schedule_role.id
 
 #   policy = <<EOF

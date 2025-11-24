@@ -1,12 +1,12 @@
 resource "aws_sns_topic" "sns_topic" {
-  name = "${var.app_ident}-alerts"
+  name = "${var.APP_IDENT}-alerts"
 }
 
 # Add a CloudWatch alarm for Lambda function failures
 resource "aws_cloudwatch_metric_alarm" "failure_metric_alarm" {
-  count = var.environment == "prod" ? 1 : 0
-  alarm_name          = "${var.app_ident}-failure-alarm"
-  alarm_description   = "Alarm when ${var.app_ident} encounters any failures"
+  count = var.ENVIRONMENT == "prod" ? 1 : 0
+  alarm_name          = "${var.APP_IDENT}-failure-alarm"
+  alarm_description   = "Alarm when ${var.APP_IDENT} encounters any failures"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 1  # Trigger after 1 evaluation period
   datapoints_to_alarm = 1  # Alarm if at least 1 failure is detected
