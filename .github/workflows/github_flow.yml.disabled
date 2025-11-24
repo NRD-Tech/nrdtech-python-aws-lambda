@@ -151,6 +151,8 @@ jobs:
         uses: docker/setup-buildx-action@v2.0.0
 
       - name: Destroy Staging
+        # env:
+        #     TF_VAR_SECRET_DATA: ${{ secrets.SECRET_DATA_STAGING }}
         run: |
           chmod +x ./*.sh
           ENVIRONMENT=staging ./deploy.sh -d
@@ -187,6 +189,8 @@ jobs:
         uses: docker/setup-buildx-action@v2.0.0
 
       - name: Destroy Production
+        # env:
+        #   TF_VAR_SECRET_DATA: ${{ secrets.SECRET_DATA_PROD }}
         run: |
           chmod +x ./*.sh
           ENVIRONMENT=prod ./deploy.sh -d
