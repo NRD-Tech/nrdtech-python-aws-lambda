@@ -1,6 +1,99 @@
 # Python AWS Lambda App
 This is a project template for a python application that will be triggered either by an Event Bridge schedule, an SQS queue, or an API Gateway endpoint
 
+# Quick Start
+
+## Prerequisites
+- Python 3.12 and Poetry installed
+- AWS account with OIDC role and Terraform state bucket configured (see [OIDC Pre-Requisite](#oidc-pre-requisite))
+- Docker installed and running
+- Git repository set up
+
+## Scheduled App (EventBridge)
+
+1. **Configure settings:**
+   ```bash
+   # Edit config.global - set at minimum:
+   # APP_IDENT_WITHOUT_ENV, TERRAFORM_STATE_BUCKET, AWS_DEFAULT_REGION, AWS_ROLE_ARN
+   ```
+
+2. **Enable EventBridge trigger:**
+   ```bash
+   # Uncomment terraform/main/lambda_eventbridge_schedule.tf
+   # Edit schedule_expression (cron or rate) in that file
+   ```
+
+3. **Enable handler code:**
+   ```bash
+   # In app/lambda_handler.py, ensure the EventBridge section is uncommented
+   # (it's uncommented by default)
+   ```
+
+4. **Deploy:**
+   ```bash
+   git checkout -b staging
+   git push --set-upstream origin staging
+   # GitHub Actions will deploy to staging automatically
+   ```
+
+## API Gateway App
+
+1. **Configure settings:**
+   ```bash
+   # Edit config.global - set at minimum:
+   # APP_IDENT_WITHOUT_ENV, TERRAFORM_STATE_BUCKET, AWS_DEFAULT_REGION, AWS_ROLE_ARN
+   
+   # Edit config.staging and config.prod - set:
+   # API_ROOT_DOMAIN (must exist in Route53)
+   # API_DOMAIN (e.g., api-staging.mydomain.com)
+   ```
+
+2. **Enable API Gateway trigger:**
+   ```bash
+   # Uncomment terraform/main/lambda_api_gateway.tf
+   ```
+
+3. **Enable handler code:**
+   ```bash
+   # In app/lambda_handler.py, uncomment the API Gateway section
+   # Install FastAPI dependencies: poetry add fastapi mangum uvicorn
+   ```
+
+4. **Deploy:**
+   ```bash
+   git checkout -b staging
+   git push --set-upstream origin staging
+   # GitHub Actions will deploy to staging automatically
+   ```
+
+## SQS Triggered App
+
+1. **Configure settings:**
+   ```bash
+   # Edit config.global - set at minimum:
+   # APP_IDENT_WITHOUT_ENV, TERRAFORM_STATE_BUCKET, AWS_DEFAULT_REGION, AWS_ROLE_ARN
+   ```
+
+2. **Enable SQS trigger:**
+   ```bash
+   # Uncomment terraform/main/lambda_sqs_trigger.tf
+   # (it's already uncommented by default)
+   ```
+
+3. **Enable handler code:**
+   ```bash
+   # In app/lambda_handler.py, uncomment the SQS Trigger section
+   ```
+
+4. **Deploy:**
+   ```bash
+   git checkout -b staging
+   git push --set-upstream origin staging
+   # GitHub Actions will deploy to staging automatically
+   ```
+
+---
+
 # Technology Stack
 * Python 3.12
 * Docker
