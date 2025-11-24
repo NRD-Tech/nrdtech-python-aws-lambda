@@ -45,5 +45,10 @@
         "**/*.pyc": true,
         "**/*.pyo": true,
         "**/*.pyd": true
+    },
+
+    // File Associations
+    "files.associations": {
+        "config.*": "shellscript"
     }
 }
