@@ -9,6 +9,13 @@ This is a project template for a python application that will be triggered eithe
 - Docker installed and running
 - Git repository set up
 
+## Initial Setup
+
+Create the `.env` file for local development:
+```bash
+echo "PYTHONPATH=app" > .env
+```
+
 ## Scheduled App (EventBridge)
 
 1. **Enable GitHub Actions workflow:**
@@ -29,10 +36,13 @@ This is a project template for a python application that will be triggered eithe
    # Edit schedule_expression (cron or rate) in that file
    ```
 
-4. **Enable handler code:**
+4. **Enable handler code and test:**
    ```bash
-   # In app/lambda_handler.py, ensure the EventBridge section is uncommented
-   # (it's uncommented by default)
+   # Enable the EventBridge handler
+   mv app/lambda_handler_eventbridge.disabled app/lambda_handler.py
+   
+   # Enable the corresponding test
+   mv tests/unit/app/lambda_handler_test_eventbridge.py.disabled tests/unit/app/lambda_handler_test_eventbridge.py
    ```
 
 5. **Verify tests pass:**
@@ -75,10 +85,16 @@ This is a project template for a python application that will be triggered eithe
    # Uncomment terraform/main/lambda_api_gateway.tf
    ```
 
-4. **Enable handler code:**
+4. **Enable handler code and test:**
    ```bash
-   # In app/lambda_handler.py, uncomment the API Gateway section
-   # Install FastAPI dependencies: poetry add fastapi mangum uvicorn
+   # Enable the API Gateway handler
+   mv app/lambda_handler_api_gateway.disabled app/lambda_handler.py
+   
+   # Enable the corresponding test
+   mv tests/unit/app/lambda_handler_test_api_gateway.py.disabled tests/unit/app/lambda_handler_test_api_gateway.py
+   
+   # Install FastAPI dependencies (if not already installed)
+   poetry add fastapi mangum uvicorn
    ```
 
 5. **Verify tests pass:**
@@ -118,9 +134,13 @@ This is a project template for a python application that will be triggered eithe
    # (it's already uncommented by default)
    ```
 
-4. **Enable handler code:**
+4. **Enable handler code and test:**
    ```bash
-   # In app/lambda_handler.py, uncomment the SQS Trigger section
+   # Enable the SQS handler
+   mv app/lambda_handler_sqs.disabled app/lambda_handler.py
+   
+   # Enable the corresponding test
+   mv tests/unit/app/lambda_handler_test_sqs.py.disabled tests/unit/app/lambda_handler_test_sqs.py
    ```
 
 5. **Verify tests pass:**
@@ -244,6 +264,42 @@ poetry install
 poetry env info
 ```
 
+## Enabling a Lambda Handler
+
+When starting a new project, you need to enable one of the three handler types. Each handler is provided as a separate file with a `.disabled` extension:
+
+- `app/lambda_handler_eventbridge.disabled` - For EventBridge scheduled functions
+- `app/lambda_handler_sqs.disabled` - For SQS-triggered functions
+- `app/lambda_handler_api_gateway.disabled` - For API Gateway functions
+
+To enable a handler:
+
+1. **Rename the desired handler file** to remove the `.disabled` extension:
+   ```bash
+   # For EventBridge
+   mv app/lambda_handler_eventbridge.disabled app/lambda_handler.py
+   
+   # For SQS
+   mv app/lambda_handler_sqs.disabled app/lambda_handler.py
+   
+   # For API Gateway
+   mv app/lambda_handler_api_gateway.disabled app/lambda_handler.py
+   ```
+
+2. **Enable the corresponding test file** by removing the `.disabled` extension:
+   ```bash
+   # For EventBridge
+   mv tests/unit/app/lambda_handler_test_eventbridge.py.disabled tests/unit/app/lambda_handler_test_eventbridge.py
+   
+   # For SQS
+   mv tests/unit/app/lambda_handler_test_sqs.py.disabled tests/unit/app/lambda_handler_test_sqs.py
+   
+   # For API Gateway
+   mv tests/unit/app/lambda_handler_test_api_gateway.py.disabled tests/unit/app/lambda_handler_test_api_gateway.py
+   ```
+
+**Note**: Only enable one handler and its corresponding test at a time. The enabled handler should be named `lambda_handler.py` as this is what the Lambda runtime expects. Test files are disabled by default to prevent failures when running `poetry run pytest` without an active handler.
+
 ## Create a .env file for local development environment variables
 1. Create .env in your root folder and add at least the following:
 ```
@@ -255,7 +311,7 @@ At this point you should have a fully working local development environment.  Th
 poetry run pytest
 ```
 
-**Note on Testing**: The test suite includes unit tests for all three handler types (EventBridge, SQS, and API Gateway). Tests automatically skip handlers that aren't currently active (commented out). When you switch handlers in `lambda_handler.py`, the corresponding test will run. All tests must pass for deployment to succeed.
+**Note on Testing**: The test suite includes separate test files for each handler type, all disabled by default. When you enable a handler, you must also enable the corresponding test file by removing the `.disabled` extension. This prevents test failures when running `poetry run pytest` without an active handler. All tests must pass for deployment to succeed.
 ---
 
 # Configuring the App for AWS Deployment
@@ -275,17 +331,20 @@ poetry run pytest
     * TERRAFORM_STATE_BUCKET
     * AWS_DEFAULT_REGION
     * AWS_ROLE_ARN
-* Choose how your lambda function will be triggered and un-comment the appropriate terraform:
+* Choose how your lambda function will be triggered and enable the appropriate handler:
   * Event Bridge Scheduling:
     * Un-comment terraform/main/lambda_eventbridge_schedule.tf
     * Set the schedule that you want as a cron or rate in terraform/main/lambda_eventbridge_schedule.tf
-    * Edit lambda_handler.py to enable the appropriate section
+    * Enable the handler: `mv app/lambda_handler_eventbridge.disabled app/lambda_handler.py`
+    * Enable the test: `mv tests/unit/app/lambda_handler_test_eventbridge.py.disabled tests/unit/app/lambda_handler_test_eventbridge.py`
   * SQS Triggered:
     * Un-comment terraform/main/lambda_sqs_trigger.tf
-    * Edit lambda_handler.py to enable the appropriate section
+    * Enable the handler: `mv app/lambda_handler_sqs.disabled app/lambda_handler.py`
+    * Enable the test: `mv tests/unit/app/lambda_handler_test_sqs.py.disabled tests/unit/app/lambda_handler_test_sqs.py`
   * API Gateway:
     * Un-comment terraform/main/lambda_api_gateway.tf
-    * Edit lambda_handler.py to enable the appropriate section
+    * Enable the handler: `mv app/lambda_handler_api_gateway.disabled app/lambda_handler.py`
+    * Enable the test: `mv tests/unit/app/lambda_handler_test_api_gateway.py.disabled tests/unit/app/lambda_handler_test_api_gateway.py`
     * Configure the domain's in config.prod and config.staging
 * Commit your changes to git
 ```

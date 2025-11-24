@@ -1,0 +1,19 @@
+import json
+
+
+def lambda_handler(event, context):
+    print("SQS Triggered Hello World")
+
+    # SQS Trigger Handling
+    _handle_event_from_sqs_trigger(event)
+
+    return {"statusCode": 200, "body": "Done"}
+
+
+def _handle_event_from_sqs_trigger(event):
+    for record in event["Records"]:
+        # Often messages are json and can be handled like this
+        body = json.loads(record["body"])
+        print(body)
+        # ... do something something with this message
+

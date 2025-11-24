@@ -1,0 +1,39 @@
+import json
+from unittest.mock import MagicMock
+
+import pytest
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
+def test_sqs_handler():
+    """Test SQS triggered lambda handler."""
+    from app.lambda_handler import lambda_handler
+
+    # SQS event structure
+    mock_event = {
+        "Records": [
+            {
+                "messageId": "test-message-id",
+                "receiptHandle": "test-receipt-handle",
+                "body": json.dumps({"key": "value"}),
+                "attributes": {
+                    "ApproximateReceiveCount": "1",
+                    "SentTimestamp": "1234567890000",
+                },
+                "messageAttributes": {},
+                "md5OfBody": "test-md5",
+                "eventSource": "aws:sqs",
+                "eventSourceARN": "arn:aws:sqs:us-west-2:123456789012:test-queue",
+                "awsRegion": "us-west-2",
+            }
+        ]
+    }
+    mock_context = MagicMock()
+
+    response = lambda_handler(mock_event, mock_context)
+
+    assert response["statusCode"] == 200
+    assert response["body"] == "Done"
+

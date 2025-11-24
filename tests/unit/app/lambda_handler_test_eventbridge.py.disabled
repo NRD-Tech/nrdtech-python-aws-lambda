@@ -1,0 +1,30 @@
+from unittest.mock import MagicMock
+
+import pytest
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
+def test_eventbridge_handler():
+    """Test EventBridge scheduled lambda handler."""
+    from app.lambda_handler import lambda_handler
+
+    # EventBridge event structure
+    mock_event = {
+        "version": "0",
+        "id": "test-event-id",
+        "detail-type": "Scheduled Event",
+        "source": "aws.events",
+        "account": "123456789012",
+        "time": "2024-01-01T00:00:00Z",
+        "region": "us-west-2",
+        "detail": {},
+    }
+    mock_context = MagicMock()
+
+    response = lambda_handler(mock_event, mock_context)
+
+    assert response["statusCode"] == 200
+    assert response["body"] == "Done"
+

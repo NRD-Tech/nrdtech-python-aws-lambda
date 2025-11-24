@@ -1,0 +1,48 @@
+from unittest.mock import MagicMock
+
+import pytest
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
+def test_api_gateway_handler():
+    """Test API Gateway lambda handler."""
+    from app.lambda_handler import lambda_handler
+
+    # API Gateway v1 event structure (required by Mangum)
+    mock_event = {
+        "httpMethod": "GET",
+        "path": "/healthcheck",
+        "headers": {
+            "Content-Type": "application/json",
+        },
+        "queryStringParameters": None,
+        "pathParameters": None,
+        "body": None,
+        "isBase64Encoded": False,
+        "requestContext": {
+            "requestId": "test-request-id",
+            "stage": "test",
+            "httpMethod": "GET",
+            "path": "/healthcheck",
+            "accountId": "123456789012",
+            "apiId": "test-api-id",
+            "protocol": "HTTP/1.1",
+            "requestTime": "09/Apr/2015:12:34:56 +0000",
+            "requestTimeEpoch": 1428582896000,
+            "identity": {
+                "sourceIp": "127.0.0.1",
+            },
+        },
+        "resource": "/healthcheck",
+    }
+    mock_context = MagicMock()
+
+    response = lambda_handler(mock_event, mock_context)
+
+    # API Gateway responses have statusCode and body (may be JSON string)
+    assert "statusCode" in response
+    assert response["statusCode"] == 200
+    assert "body" in response
+
