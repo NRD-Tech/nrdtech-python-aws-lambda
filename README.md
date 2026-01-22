@@ -53,13 +53,17 @@ echo "PYTHONPATH=app" > .env
 
 6. **Deploy:**
    ```bash
+   # Commit
+   git add .
+   git commit -a -m 'init'
+
    # Push to main branch to deploy to staging
    git push origin main
    # GitHub Actions will automatically deploy to staging
    
    # To deploy to production, create a version tag:
-   # git tag v1.0.0
-   # git push origin v1.0.0
+   # git tag v0.1.0
+   # git push origin v0.1.0
    ```
 
 ## API Gateway App

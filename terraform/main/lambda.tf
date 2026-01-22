@@ -1,6 +1,6 @@
 # For Custom VPC
 # resource "aws_security_group" "lambda_sg" {
-#   name   = "${var.app_ident}_lambda_sg"
+#   name   = "${var.APP_IDENT}_lambda_sg"
 #   vpc_id = data.aws_vpc.selected.id
 
 #   egress {
