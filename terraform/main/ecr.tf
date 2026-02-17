@@ -26,8 +26,11 @@ resource "aws_ecr_lifecycle_policy" "lifecycle_policy" {
   })
 }
 
+# Single platform and no attestations so ECR image uses a manifest type Lambda/ECS support (Docker v2 / OCI).
+# Attestations or manifest lists would be rejected.
 locals {
-  docker_command = var.CPU_ARCHITECTURE == "ARM64" ? "docker buildx build --platform linux/arm64  --provenance=false" : "docker build"
+  docker_platform = var.CPU_ARCHITECTURE == "ARM64" ? "linux/arm64" : "linux/amd64"
+  docker_command  = "docker buildx build --platform ${local.docker_platform} --provenance=false --sbom=false"
 }
 
 resource "null_resource" "push_image" {
