@@ -37,14 +37,26 @@ variable "CPU_ARCHITECTURE" {
 }
 
 ##################################################
-# API Gateway variables
+# Trigger type: one of api_gateway, sqs, eventbridge
+# Switching triggers uses a two-phase apply to avoid cycles.
+##################################################
+variable "trigger_type" {
+  description = "Lambda trigger: api_gateway, sqs, or eventbridge. Set in config.global / config.<env>. Use 'none' only for internal two-phase apply."
+  type        = string
+  default     = "sqs"
+}
+
+##################################################
+# API Gateway variables (only when trigger_type = api_gateway)
 ##################################################
 variable "API_DOMAIN" {
-  type = string
+  type    = string
+  default = ""
 }
 
 variable "API_ROOT_DOMAIN" {
-  type = string
+  type    = string
+  default = ""
 }
 
 ##################################################

@@ -12,7 +12,6 @@
 # }
 
 resource "aws_lambda_function" "lambda_function" {
-  depends_on = [null_resource.push_image]
   function_name = var.APP_IDENT
   role          = aws_iam_role.lambda_exec.arn
   package_type  = "Image"

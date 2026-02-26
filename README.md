@@ -30,11 +30,7 @@ echo "PYTHONPATH=app" > .env
    # APP_IDENT_WITHOUT_ENV, TERRAFORM_STATE_BUCKET, AWS_DEFAULT_REGION, AWS_ROLE_ARN
    ```
 
-3. **Enable EventBridge trigger:**
-   ```bash
-   # Uncomment terraform/main/lambda_eventbridge_schedule.tf
-   # Edit schedule_expression (cron or rate) in that file
-   ```
+3. **Enable EventBridge trigger:** In config.global set `export trigger_type=eventbridge`. Edit schedule_expression in terraform/main/lambda_eventbridge_schedule.tf if needed.
 
 4. **Enable handler code and test:**
    ```bash
@@ -84,10 +80,7 @@ echo "PYTHONPATH=app" > .env
    # API_DOMAIN (e.g., api-staging.mydomain.com)
    ```
 
-3. **Enable API Gateway trigger:**
-   ```bash
-   # Uncomment terraform/main/lambda_api_gateway.tf
-   ```
+3. **Enable API Gateway trigger:** In config.global set `export trigger_type=api_gateway`. Set API_DOMAIN and API_ROOT_DOMAIN in config.staging and config.prod.
 
 4. **Enable handler code and test:**
    ```bash
@@ -132,11 +125,7 @@ echo "PYTHONPATH=app" > .env
    # APP_IDENT_WITHOUT_ENV, TERRAFORM_STATE_BUCKET, AWS_DEFAULT_REGION, AWS_ROLE_ARN
    ```
 
-3. **Enable SQS trigger:**
-   ```bash
-   # Uncomment terraform/main/lambda_sqs_trigger.tf
-   # (it's already uncommented by default)
-   ```
+3. **Enable SQS trigger:** In config.global set `export trigger_type=sqs` (default).
 
 4. **Enable handler code and test:**
    ```bash
@@ -335,21 +324,19 @@ poetry run pytest
     * TERRAFORM_STATE_BUCKET
     * AWS_DEFAULT_REGION
     * AWS_ROLE_ARN
-* Choose how your lambda function will be triggered and enable the appropriate handler:
-  * Event Bridge Scheduling:
-    * Un-comment terraform/main/lambda_eventbridge_schedule.tf
-    * Set the schedule that you want as a cron or rate in terraform/main/lambda_eventbridge_schedule.tf
+* Set **trigger_type** in config.global (or config.\<env\>): `trigger_type=api_gateway`, `trigger_type=sqs`, or `trigger_type=eventbridge`. All three Terraform trigger files remain in the repo; only the one matching trigger_type is applied. Switching triggers (e.g. from API Gateway to SQS) is done by changing this value and re-deploying—no manual state fixes or comment/uncomment.
+* Enable the matching Lambda handler and test (one of):
+  * Event Bridge Scheduling (trigger_type=eventbridge):
+    * Set schedule in terraform/main/lambda_eventbridge_schedule.tf if needed (cron/rate).
     * Enable the handler: `mv app/lambda_handler_eventbridge.py.disabled app/lambda_handler.py`
     * Enable the test: `mv tests/unit/app/lambda_handler_test_eventbridge.py.disabled tests/unit/app/lambda_handler_test_eventbridge.py`
-  * SQS Triggered:
-    * Un-comment terraform/main/lambda_sqs_trigger.tf
+  * SQS Triggered (trigger_type=sqs):
     * Enable the handler: `mv app/lambda_handler_sqs.py.disabled app/lambda_handler.py`
     * Enable the test: `mv tests/unit/app/lambda_handler_test_sqs.py.disabled tests/unit/app/lambda_handler_test_sqs.py`
-  * API Gateway:
-    * Un-comment terraform/main/lambda_api_gateway.tf
+  * API Gateway (trigger_type=api_gateway):
+    * Set API_DOMAIN and API_ROOT_DOMAIN in config.staging / config.prod.
     * Enable the handler: `mv app/lambda_handler_api_gateway.py.disabled app/lambda_handler.py`
     * Enable the test: `mv tests/unit/app/lambda_handler_test_api_gateway.py.disabled tests/unit/app/lambda_handler_test_api_gateway.py`
-    * Configure the domain's in config.prod and config.staging
 * Commit your changes to git
 ```
 git add .

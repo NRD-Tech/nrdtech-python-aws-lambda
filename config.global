@@ -29,6 +29,10 @@ export APP_MEMORY=128  # memory in MB
 #        create an ARM64 GitHub-hosted runner and use that instead.
 export CPU_ARCHITECTURE=X86_64
 
+# Lambda trigger type: api_gateway | sqs | eventbridge
+# Switch by changing this value; deploy uses a two-phase apply when needed to avoid cycles.
+export trigger_type=sqs
+
 # For Custom VPC
 # - Uncomment appropriate sections in main.tf and lambda.tf
 
