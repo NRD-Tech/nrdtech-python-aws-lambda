@@ -5,22 +5,42 @@ on:
     branches:
       - main
     tags:
-      - 'v*'
       - 'destroy-staging-*'
       - 'destroy-prod-*'
+  release:
+    types: [published]
   pull_request:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'
+        type: choice
+        options:
+        - info
+        - warning
+        - debug
+      environment:
+        description: 'Environment to deploy (staging or prod)'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - prod
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
@@ -40,15 +60,13 @@ jobs:
   deploy-staging:
     needs: test
     runs-on: ubuntu-latest
-    if: |
-      github.ref == 'refs/heads/main' &&
-      !startsWith(github.ref, 'refs/tags/destroy-')
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     permissions:
       id-token: write
       contents: read
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Load configuration
         id: config
@@ -64,16 +82,16 @@ jobs:
           aws-region: ${{ steps.config.outputs.aws-region }}
 
       - name: Install Terraform
-        uses: hashicorp/setup-terraform@v2
+        uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.10.3
 
       - name: Docker Setup Buildx
-        uses: docker/setup-buildx-action@v2.0.0
+        uses: docker/setup-buildx-action@v3
 
       - name: Deploy to Staging
         # env:
-        #     TF_VAR_SECRET_DATA: ${{ secrets.SECRET_DATA_STAGING }}
+        #   TF_VAR_SECRET_DATA: ${{ secrets.SECRET_DATA_STAGING }}
         run: |
           chmod +x ./*.sh
           ENVIRONMENT=staging ./deploy.sh
@@ -81,15 +99,13 @@ jobs:
   deploy-production:
     needs: test
     runs-on: ubuntu-latest
-    if: |
-      startsWith(github.ref, 'refs/tags/v') &&
-      !startsWith(github.ref, 'refs/tags/destroy-')
+    if: github.event_name == 'release'
     permissions:
       id-token: write
       contents: read
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Load configuration
         id: config
@@ -105,12 +121,12 @@ jobs:
           aws-region: ${{ steps.config.outputs.aws-region }}
 
       - name: Install Terraform
-        uses: hashicorp/setup-terraform@v2
+        uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.10.3
 
       - name: Docker Setup Buildx
-        uses: docker/setup-buildx-action@v2.0.0
+        uses: docker/setup-buildx-action@v3
 
       - name: Deploy to Production
         # env:
@@ -120,6 +136,7 @@ jobs:
           ENVIRONMENT=prod ./deploy.sh
 
   destroy-staging:
+    needs: test
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/destroy-staging-')
     permissions:
@@ -127,7 +144,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Load configuration
         id: config
@@ -143,21 +160,22 @@ jobs:
           aws-region: ${{ steps.config.outputs.aws-region }}
 
       - name: Install Terraform
-        uses: hashicorp/setup-terraform@v2
+        uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.10.3
 
       - name: Docker Setup Buildx
-        uses: docker/setup-buildx-action@v2.0.0
+        uses: docker/setup-buildx-action@v3
 
       - name: Destroy Staging
         # env:
-        #     TF_VAR_SECRET_DATA: ${{ secrets.SECRET_DATA_STAGING }}
+        #   TF_VAR_SECRET_DATA: ${{ secrets.SECRET_DATA_STAGING }}
         run: |
           chmod +x ./*.sh
           ENVIRONMENT=staging ./deploy.sh -d
 
   destroy-production:
+    needs: test
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/destroy-prod-')
     permissions:
@@ -165,7 +183,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Load configuration
         id: config
@@ -181,12 +199,12 @@ jobs:
           aws-region: ${{ steps.config.outputs.aws-region }}
 
       - name: Install Terraform
-        uses: hashicorp/setup-terraform@v2
+        uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.10.3
 
       - name: Docker Setup Buildx
-        uses: docker/setup-buildx-action@v2.0.0
+        uses: docker/setup-buildx-action@v3
 
       - name: Destroy Production
         # env:
@@ -194,4 +212,3 @@ jobs:
         run: |
           chmod +x ./*.sh
           ENVIRONMENT=prod ./deploy.sh -d
-
