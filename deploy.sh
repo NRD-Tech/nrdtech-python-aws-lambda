@@ -53,7 +53,10 @@ source "config.${ENVIRONMENT}"
 echo "Exporting all environment variables to Terraform..."
 
 # Use process substitution to avoid subshell
-while IFS='=' read -r var_name var_value; do
+while IFS= read -r line; do
+  [[ "$line" == *=* ]] || continue
+  var_name="${line%%=*}"
+  var_value="${line#*=}"
   # Skip variables that already have TF_VAR_ prefix
   if [[ "$var_name" != TF_VAR_* ]]; then
     export "TF_VAR_${var_name}"="${var_value}"
