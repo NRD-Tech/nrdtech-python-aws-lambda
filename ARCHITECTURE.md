@@ -55,8 +55,7 @@ flowchart TB
   end
 
   subgraph tf["Terraform"]
-    BOOT[terraform/bootstrap: App Registry]
-    MAIN[terraform/main: ECR, Lambda, trigger, alarm]
+    MAIN[terraform/main: tags, Resource Groups, ECR, Lambda, trigger, alarm]
     DOCKER[Build & push image to ECR]
   end
 
@@ -66,7 +65,7 @@ flowchart TB
   TAG --> TEST --> DEPLOY_PROD
   DEPLOY_STAGING --> SOURCE --> EXPORT --> TF_CREATE
   DEPLOY_PROD --> SOURCE --> EXPORT --> TF_CREATE
-  TF_CREATE --> BOOT --> MAIN --> DOCKER
+  TF_CREATE --> MAIN --> DOCKER
 ```
 
 - **Push to `main`** → tests run → **staging** deploy (`ENVIRONMENT=staging ./deploy.sh`).
@@ -80,17 +79,12 @@ flowchart TB
 ```mermaid
 flowchart TB
   subgraph _run_terraform_create["_run_terraform_create.sh"]
-    B1[terraform/bootstrap: generate backend.tf]
-    B2[terraform init + apply]
-    M1[terraform/main: generate backend.tf + app_bootstrap.tf]
+    M1[terraform/main: generate backend.tf]
     M2[terraform init + apply]
   end
 
-  subgraph bootstrap["terraform/bootstrap"]
-    REG[App Registry app + app_tags]
-  end
-
   subgraph main["terraform/main"]
+    TAGS[tags.tf: common_tags + Resource Groups]
     ECR[ECR repo + lifecycle]
     HASH[code_hash.txt → null_resource trigger]
     BUILD[local-exec: docker buildx + push to ECR]
@@ -100,13 +94,11 @@ flowchart TB
     ALARM[CloudWatch alarm prod only]
   end
 
-  B1 --> B2 --> REG
-  REG --> M1 --> M2
-  M2 --> ECR --> HASH --> BUILD --> LAMBDA --> IAM --> TRIGGER --> ALARM
+  M1 --> M2
+  M2 --> TAGS --> ECR --> HASH --> BUILD --> LAMBDA --> IAM --> TRIGGER --> ALARM
 ```
 
-- **Bootstrap** runs first: creates the app in AWS App Registry and outputs `app_tags`; state in S3.
-- **Main** reads bootstrap state, creates ECR, computes code hash, builds/pushes image, then creates Lambda (with that image tag), IAM, the trigger selected by **trigger_type** (count-based), and (prod) alarm. If a **cycle** is detected when switching triggers, a two-phase apply runs (trigger_type=none then desired value).
+- **Single main stack**: applies tags (`Environment` / `Repository` / `Project`) and Resource Groups, creates ECR, computes code hash, builds/pushes image, then creates Lambda (with that image tag), IAM, the trigger selected by **trigger_type** (count-based), and (prod) alarm. If a **cycle** is detected when switching triggers, a two-phase apply runs (trigger_type=none then desired value).
 - Lambda **CMD** in Dockerfile: `app.lambda_handler.lambda_handler` → you must have `app/lambda_handler.py` with a `lambda_handler(event, context)`.
 
 ---
@@ -258,7 +250,7 @@ flowchart TB
   end
 
   subgraph tf["Terraform"]
-    BOOT[Bootstrap: App Registry]
+    MAIN[Main: tags, Resource Groups, ECR, Lambda, trigger]
     ECR[ECR repo]
     HASH[code_hash → build image]
     LAMBDA[Lambda + IAM]
@@ -275,7 +267,7 @@ flowchart TB
 
   PY --> TEST
   PUSH --> PT --> DEPLOY
-  DEPLOY --> BOOT --> ECR --> HASH --> LAMBDA --> TRIG --> ALARM
+  DEPLOY --> MAIN --> ECR --> HASH --> LAMBDA --> TRIG --> ALARM
   EB --> L
   SQS --> L
   APIGW --> L

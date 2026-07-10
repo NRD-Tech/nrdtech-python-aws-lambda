@@ -14,23 +14,22 @@ on:
       - main
   workflow_dispatch:
     inputs:
-      logLevel:
-        description: 'Log level'
-        required: true
-        default: 'warning'
-        type: choice
-        options:
-        - info
-        - warning
-        - debug
       environment:
-        description: 'Environment to deploy (staging or prod)'
+        description: 'Environment'
         required: true
         default: 'staging'
         type: choice
         options:
-        - staging
-        - prod
+          - staging
+          - prod
+      action:
+        description: 'Deploy or destroy'
+        required: true
+        default: 'deploy'
+        type: choice
+        options:
+          - deploy
+          - destroy
 
 jobs:
   test:
@@ -212,3 +211,44 @@ jobs:
         run: |
           chmod +x ./*.sh
           ENVIRONMENT=prod ./deploy.sh -d
+
+  manual:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Load configuration
+        id: config
+        run: |
+          source config.global
+          echo "aws-role-arn=$AWS_ROLE_ARN" >> $GITHUB_OUTPUT
+          echo "aws-region=$AWS_DEFAULT_REGION" >> $GITHUB_OUTPUT
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ steps.config.outputs.aws-role-arn }}
+          aws-region: ${{ steps.config.outputs.aws-region }}
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.10.3
+
+      - name: Docker Setup Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Deploy or destroy
+        run: |
+          chmod +x ./*.sh
+          if [ "${{ inputs.action }}" = "destroy" ]; then
+            ENVIRONMENT=${{ inputs.environment }} ./deploy.sh -d
+          else
+            ENVIRONMENT=${{ inputs.environment }} ./deploy.sh
+          fi

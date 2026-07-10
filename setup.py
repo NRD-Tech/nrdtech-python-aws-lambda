@@ -82,6 +82,8 @@ def read_current_config():
     g = _parse_export_file(CONFIG_GLOBAL)
     if g:
         current["app_name"] = g.get("APP_IDENT_WITHOUT_ENV", "")
+        current["project_name"] = g.get("PROJECT_NAME", "") or g.get("APP_IDENT_WITHOUT_ENV", "")
+        current["manage_project_resource_group"] = g.get("MANAGE_PROJECT_RESOURCE_GROUP", "")
         current["terraform_state_bucket"] = g.get("TERRAFORM_STATE_BUCKET", "")
         current["aws_region"] = g.get("AWS_DEFAULT_REGION", "us-west-2")
         current["aws_role_arn"] = g.get("AWS_ROLE_ARN", "")
@@ -99,19 +101,10 @@ def read_current_config():
 
 
 def detect_current_app_type():
-    """Return which app type is active (which .tf file has uncommented resources)."""
-    for app_type, tf_name in TF_FILE_BY_TYPE.items():
-        path = os.path.join(TERRAFORM_MAIN, tf_name)
-        if not os.path.isfile(path):
-            continue
-        with open(path, "r", encoding="utf-8") as f:
-            if any(
-                line.strip().startswith(("resource ", "data ", "output "))
-                for line in f
-                if line.strip()
-            ):
-                return app_type
-    return "scheduled"
+    """Return app type from config trigger_type, falling back to scheduled."""
+    g = _parse_export_file(CONFIG_GLOBAL)
+    raw = g.get("trigger_type", "eventbridge")
+    return TRIGGER_TYPE_REVERSE.get(raw, "scheduled")
 
 
 # ---------------------------------------------------------------------------
@@ -393,15 +386,29 @@ def ensure_tf_commented(tf_name):
 # Config writers
 # ---------------------------------------------------------------------------
 def write_config_global(args):
+    project_name = getattr(args, "project_name", "") or args.app_name
+    manage_project_rg = getattr(args, "manage_project_resource_group", "")
+    if not manage_project_rg:
+        manage_project_rg = "true" if project_name == args.app_name else "false"
+    trigger = TRIGGER_TYPE_MAP.get(args.app_type, "eventbridge")
     content = """\
 #########################################################
 # Configuration
 #########################################################
-# Used to identify the application in AWS resources | allowed characters: a-zA-Z0-9-_
+# Used to identify this repository in AWS resources | allowed characters: a-zA-Z0-9-_
 # NOTE: This must be no longer than 20 characters long
+# Also used as the Repository cost-allocation tag
 export APP_IDENT_WITHOUT_ENV={app_name}
 export APP_IDENT="${{APP_IDENT_WITHOUT_ENV}}-${{ENVIRONMENT}}"
 export TERRAFORM_STATE_IDENT=$APP_IDENT
+
+# Project name for cross-repository cost/resource grouping (Cost Explorer tag: Project).
+# Use the same PROJECT_NAME on related repos (e.g. backend + frontend).
+export PROJECT_NAME={project_name}
+
+# When true, this stack creates rg-project-{{PROJECT_NAME}}-{{ENVIRONMENT}}.
+# Set true on exactly one repo per Project+Environment (usually the "primary" repo).
+export MANAGE_PROJECT_RESOURCE_GROUP={manage_project_resource_group}
 
 # This is the AWS S3 bucket in which you are storing your terraform state files
 # - This must exist before deploying
@@ -409,6 +416,7 @@ export TERRAFORM_STATE_BUCKET={terraform_state_bucket}
 
 # This is the AWS region in which the application will be deployed
 export AWS_DEFAULT_REGION={aws_region}
+export AWS_REGION=${{AWS_DEFAULT_REGION}}
 
 # OIDC Deployment role
 export AWS_ROLE_ARN={aws_role_arn}
@@ -422,6 +430,10 @@ export APP_MEMORY={app_memory}  # memory in MB
 # NOTE: Only GitHub supports ARM64 builds - Bitbucket doesn't
 export CPU_ARCHITECTURE={cpu_architecture}
 
+# Lambda trigger type: api_gateway | sqs | eventbridge
+# All trigger .tf files stay active; count conditions gate which resources are created.
+export trigger_type={trigger_type}
+
 #########################################################
 # Create code hash
 #########################################################
@@ -434,12 +446,15 @@ docker run --rm -v $(pwd):/workdir -w /workdir alpine sh -c \\
     with open(CONFIG_GLOBAL, "w", encoding="utf-8") as f:
         f.write(content.format(
             app_name=args.app_name,
+            project_name=project_name,
+            manage_project_resource_group=manage_project_rg,
             terraform_state_bucket=args.terraform_state_bucket,
             aws_region=args.aws_region,
             aws_role_arn=args.aws_role_arn,
             app_timeout=args.app_timeout,
             app_memory=args.app_memory,
             cpu_architecture=args.cpu_architecture,
+            trigger_type=trigger,
         ))
     print("Wrote config.global")
 
@@ -505,12 +520,9 @@ export API_DOMAIN=api.example.com
 # Project-specific: Terraform & handler
 # ---------------------------------------------------------------------------
 def configure_terraform(app_type):
-    for tf_name in TF_FILE_BY_TYPE.values():
-        ensure_tf_commented(tf_name)
-    tf_name = TF_FILE_BY_TYPE[app_type]
-    path = os.path.join(TERRAFORM_MAIN, tf_name)
-    uncomment_tf_file(path)
-    print("Uncommented terraform/main/{}".format(tf_name))
+    """Trigger selection is via config trigger_type; all .tf files stay active with count gates."""
+    trigger = TRIGGER_TYPE_MAP.get(app_type, "eventbridge")
+    print("Using trigger_type={} (Terraform count gates; no .tf comment toggling)".format(trigger))
 
 
 def configure_handler(app_type):
@@ -565,6 +577,19 @@ def _prompt_common(args, current, discovered):
 
     if not args.app_name:
         args.app_name = prompt("App name (APP_IDENT_WITHOUT_ENV, max 20 chars)", current.get("app_name", ""))
+    if not getattr(args, "project_name", ""):
+        args.project_name = prompt(
+            "Project name (shared across related repos for cost grouping)",
+            current.get("project_name", "") or args.app_name,
+        )
+    if not getattr(args, "manage_project_resource_group", ""):
+        default_mgr = current.get("manage_project_resource_group", "")
+        if not default_mgr:
+            default_mgr = "true" if args.project_name == args.app_name else "false"
+        args.manage_project_resource_group = prompt(
+            "Manage project Resource Group? (true/false — true on one repo per project)",
+            default_mgr,
+        )
 
     if not args.app_type:
         detected = detect_current_app_type()
@@ -603,6 +628,13 @@ def main():
     )
     parser.add_argument("--app-type", choices=APP_TYPES, help="api | sqs_triggered | scheduled")
     parser.add_argument("--app-name", default="", help="APP_IDENT_WITHOUT_ENV (max 20 chars)")
+    parser.add_argument("--project-name", default="", help="Project name for cross-repo cost grouping (defaults to app-name)")
+    parser.add_argument(
+        "--manage-project-resource-group",
+        default="",
+        choices=("", "true", "false"),
+        help="Create rg-project-* Resource Group (true on one repo per project)",
+    )
     parser.add_argument("--terraform-state-bucket", default="", help="S3 bucket for Terraform state")
     parser.add_argument("--aws-region", default="us-west-2", help="AWS region")
     parser.add_argument("--aws-role-arn", default="", help="OIDC deployment role ARN")
@@ -638,6 +670,12 @@ def main():
         if args.app_type not in APP_TYPES:
             print("Error: invalid app type '{}'".format(args.app_type), file=sys.stderr)
             return 1
+        if not getattr(args, "project_name", ""):
+            args.project_name = current.get("project_name", "") or args.app_name
+        if not getattr(args, "manage_project_resource_group", ""):
+            args.manage_project_resource_group = current.get("manage_project_resource_group", "") or (
+                "true" if args.project_name == args.app_name else "false"
+            )
         defaults = {"app_timeout": "60", "app_memory": "128", "cpu_architecture": "X86_64"}
         for attr, default in defaults.items():
             if not getattr(args, attr):

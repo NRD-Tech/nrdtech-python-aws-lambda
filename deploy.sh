@@ -13,10 +13,11 @@ fi
 ####################################################################################################
 # Determine Flags
 ####################################################################################################
+FLAG_DESTROY=false
 while getopts "d" opt; do
   case ${opt} in
   d)
-    export FLAG_DESTROY=true
+    FLAG_DESTROY=true
     ;;
   \?)
     echo "Invalid option: -$OPTARG" 1>&2
@@ -29,7 +30,6 @@ shift $((OPTIND - 1))
 ####################################################################################################
 # Determine Environment
 ####################################################################################################
-# If the provided environment is not one of the allowed values, exit the script
 if [[ "${ENVIRONMENT}" != "staging" && "${ENVIRONMENT}" != "prod" ]]; then
   echo "Invalid environment: ${ENVIRONMENT}. Allowed values are 'staging', or 'prod'."
   exit 1
@@ -42,10 +42,25 @@ echo "FLAG_DESTROY: ${FLAG_DESTROY}"
 # Configure Environment
 #########################################################
 
-echo $BITBUCKET_STEP_OIDC_TOKEN > $(pwd)/web-identity-token
+# CI (Bitbucket OIDC): write web-identity token when present
+if [[ -n "${BITBUCKET_STEP_OIDC_TOKEN:-}" ]]; then
+  echo "$BITBUCKET_STEP_OIDC_TOKEN" > "$(pwd)/web-identity-token"
+fi
 
 source config.global
 source "config.${ENVIRONMENT}"
+
+# Ensure Terraform and AWS SDKs see a region
+export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-west-2}"
+export AWS_REGION="${AWS_REGION:-$AWS_DEFAULT_REGION}"
+
+# Local deploys use AWS_PROFILE / access keys — don't force web-identity
+if [[ -z "${BITBUCKET_STEP_OIDC_TOKEN:-}" && -z "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}" ]]; then
+  unset AWS_WEB_IDENTITY_TOKEN_FILE
+fi
+
+# Default PROJECT_NAME to repository name when unset
+export PROJECT_NAME="${PROJECT_NAME:-$APP_IDENT_WITHOUT_ENV}"
 
 #########################################################
 # Export all environment variables to Terraform

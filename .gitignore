@@ -55,8 +55,6 @@ crash.log
 terraform/main.*code_hash.txt
 terraform/main/backend.tf
 terraform/main/remote_backend.tf
-terraform/main/app_bootstrap.tf
-terraform/bootstrap/backend.tf
 
 # Sqlite
 *.db

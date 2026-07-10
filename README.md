@@ -158,7 +158,8 @@ echo "PYTHONPATH=app" > .env
 # Technology Stack
 * Python 3.14
 * Docker
-* Terraform
+* Terraform (single main stack; state in S3)
+* Tags + AWS Resource Groups for cost/resource grouping
 
 # Setting Up Your Development Environment
 

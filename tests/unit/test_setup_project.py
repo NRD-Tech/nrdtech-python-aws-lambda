@@ -169,12 +169,58 @@ def test_non_interactive_full_run_writes_configs(tmp_path, monkeypatch):
     global_text = (tmp_path / "config.global").read_text()
     assert "test-app" in global_text
     assert "my-bucket" in global_text
+    assert "export PROJECT_NAME=test-app" in global_text
+    assert "export MANAGE_PROJECT_RESOURCE_GROUP=true" in global_text
+    assert "export AWS_REGION=" in global_text
 
     staging_text = (tmp_path / "config.staging").read_text()
     assert "API_ROOT_DOMAIN" in staging_text
 
     # Verify handler was copied
     assert (app_dir / "lambda_handler.py").exists()
+
+
+def test_non_interactive_shared_project_name(tmp_path, monkeypatch):
+    monkeypatch.setenv("AWS_ACCESS_KEY_ID", "test")
+    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "test")
+
+    tf_dir = tmp_path / "terraform" / "main"
+    tf_dir.mkdir(parents=True)
+    for tf_name in setup_project.TF_FILE_BY_TYPE.values():
+        (tf_dir / tf_name).write_text("# resource \"aws_lambda_function\" \"fn\" {\n# }\n")
+
+    app_dir = tmp_path / "app"
+    app_dir.mkdir()
+    for handler_name in setup_project.HANDLER_FILE_BY_TYPE.values():
+        (app_dir / handler_name).write_text("def handler(event, context): pass\n")
+
+    monkeypatch.setattr(setup_project, "SCRIPT_DIR", str(tmp_path))
+    monkeypatch.setattr(setup_project, "TERRAFORM_MAIN", str(tf_dir))
+    monkeypatch.setattr(setup_project, "APP_DIR", str(app_dir))
+    monkeypatch.setattr(setup_project, "CONFIG_GLOBAL", str(tmp_path / "config.global"))
+    monkeypatch.setattr(setup_project, "CONFIG_STAGING", str(tmp_path / "config.staging"))
+    monkeypatch.setattr(setup_project, "CONFIG_PROD", str(tmp_path / "config.prod"))
+
+    orig = sys.argv
+    try:
+        sys.argv = [
+            "setup.py", "--non-interactive",
+            "--app-type", "scheduled",
+            "--app-name", "backend-api",
+            "--project-name", "checkout",
+            "--manage-project-resource-group", "false",
+            "--terraform-state-bucket", "my-bucket",
+            "--aws-role-arn", "arn:aws:iam::999:role/test",
+        ]
+        result = setup_project.main()
+        assert result == 0
+    finally:
+        sys.argv = orig
+
+    global_text = (tmp_path / "config.global").read_text()
+    assert "export PROJECT_NAME=checkout" in global_text
+    assert "export MANAGE_PROJECT_RESOURCE_GROUP=false" in global_text
+    assert "backend-api" in global_text
 
 
 def test_non_interactive_sqs_triggered_type(tmp_path, monkeypatch):

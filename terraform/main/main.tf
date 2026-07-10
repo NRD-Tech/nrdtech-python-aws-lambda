@@ -10,7 +10,7 @@ terraform {
 provider "aws" {
   region  = var.AWS_REGION
   default_tags {
-    tags = data.terraform_remote_state.app_bootstrap.outputs.app_tags
+    tags = local.common_tags
   }
 }
 
@@ -19,7 +19,7 @@ provider "aws" {
   alias  = "useast1"
   region = "us-east-1"
   default_tags {
-    tags = data.terraform_remote_state.app_bootstrap.outputs.app_tags
+    tags = local.common_tags
   }
 }
 

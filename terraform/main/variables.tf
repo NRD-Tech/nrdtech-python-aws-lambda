@@ -8,8 +8,20 @@ variable "APP_IDENT" {
 }
 
 variable "APP_IDENT_WITHOUT_ENV" {
-    description = "Identifier of the application that doesn't include the environment"
-    type = string
+  description = "Repository identifier (no environment suffix). Used as the Repository cost tag."
+  type        = string
+}
+
+variable "PROJECT_NAME" {
+  description = "Project identifier for cross-repository cost/resource grouping. Defaults to APP_IDENT_WITHOUT_ENV when empty."
+  type        = string
+  default     = ""
+}
+
+variable "MANAGE_PROJECT_RESOURCE_GROUP" {
+  description = "When 'true', create rg-project-{PROJECT_NAME}-{ENVIRONMENT}. When empty, defaults to true only if PROJECT_NAME equals APP_IDENT_WITHOUT_ENV. Set 'false' on secondary repos that share a Project."
+  type        = string
+  default     = ""
 }
 
 variable "ENVIRONMENT" {
