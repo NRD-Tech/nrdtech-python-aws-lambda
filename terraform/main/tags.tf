@@ -2,6 +2,7 @@
 # Cost / resource grouping tags + AWS Resource Groups
 #
 # Tags (applied to all resources via provider default_tags):
+#   Name        - APP_IDENT (repo-env)    → AWS console display label
 #   Environment - staging | prod          → Cost Explorer by env
 #   Repository  - this git repository     → Cost Explorer by repo
 #   Project     - product spanning repos  → Cost Explorer by project
@@ -16,6 +17,7 @@ locals {
   project_name = var.PROJECT_NAME != "" ? var.PROJECT_NAME : var.APP_IDENT_WITHOUT_ENV
 
   common_tags = {
+    Name        = var.APP_IDENT
     Environment = var.ENVIRONMENT
     Repository  = var.APP_IDENT_WITHOUT_ENV
     Project     = local.project_name
