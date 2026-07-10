@@ -11,9 +11,14 @@ if ! docker info >/dev/null 2>&1; then
 fi
 
 ####################################################################################################
-# Determine Flags
+# Determine Flags / Action
+#   ENVIRONMENT=staging ./deploy.sh           # local full apply (auto-approve)
+#   ENVIRONMENT=staging ./deploy.sh plan      # plan only (writes terraform/main/tfplan)
+#   ENVIRONMENT=staging ./deploy.sh apply     # apply saved plan from ./deploy.sh plan
+#   ENVIRONMENT=staging ./deploy.sh destroy   # destroy (-d also works)
 ####################################################################################################
 FLAG_DESTROY=false
+ACTION="full"
 while getopts "d" opt; do
   case ${opt} in
   d)
@@ -27,6 +32,17 @@ while getopts "d" opt; do
 done
 shift $((OPTIND - 1))
 
+case "${1:-}" in
+  plan) ACTION="plan" ;;
+  apply) ACTION="apply" ;;
+  destroy) FLAG_DESTROY=true ;;
+  "") ;;
+  *)
+    echo "Unknown action: $1 (expected plan|apply|destroy)" 1>&2
+    exit 1
+    ;;
+esac
+
 ####################################################################################################
 # Determine Environment
 ####################################################################################################
@@ -37,6 +53,7 @@ fi
 
 echo "ENVIRONMENT: ${ENVIRONMENT}"
 echo "FLAG_DESTROY: ${FLAG_DESTROY}"
+echo "ACTION: ${ACTION}"
 
 #########################################################
 # Configure Environment
@@ -47,7 +64,9 @@ if [[ -n "${BITBUCKET_STEP_OIDC_TOKEN:-}" ]]; then
   echo "$BITBUCKET_STEP_OIDC_TOKEN" > "$(pwd)/web-identity-token"
 fi
 
+# shellcheck source=/dev/null
 source config.global
+# shellcheck source=/dev/null
 source "config.${ENVIRONMENT}"
 
 # Ensure Terraform and AWS SDKs see a region
@@ -85,8 +104,14 @@ done < <(printenv)
 ####################################################################################################
 # Run Terraform
 ####################################################################################################
+chmod +x ./*.sh 2>/dev/null || true
+
 if [ "$FLAG_DESTROY" = true ] ; then
     bash ./_run_terraform_destroy.sh
+elif [ "$ACTION" = "plan" ]; then
+    bash ./_run_terraform_plan.sh
+elif [ "$ACTION" = "apply" ]; then
+    bash ./_run_terraform_apply_plan.sh
 else
     bash ./_run_terraform_create.sh
 fi

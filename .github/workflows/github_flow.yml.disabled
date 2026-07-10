@@ -1,5 +1,11 @@
 name: GitHub Flow Deployment
 
+# Approval modes (config.global GITHUB_APPROVAL_MODE):
+#   dispatch    (default, GitHub Team / private repos): plan on push/release; apply only via workflow_dispatch
+#   environment (GitHub Enterprise private, or public repos): plan then apply job waits on Environment required reviewers
+#
+# Environments used: staging, production (configure required reviewers in repo Settings → Environments on Enterprise)
+
 on:
   push:
     branches:
@@ -56,13 +62,12 @@ jobs:
       - name: Run tests
         run: poetry run pytest tests/unit
 
-  deploy-staging:
-    needs: test
+  load-config:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    permissions:
-      id-token: write
-      contents: read
+    outputs:
+      aws-role-arn: ${{ steps.config.outputs.aws-role-arn }}
+      aws-region: ${{ steps.config.outputs.aws-region }}
+      approval-mode: ${{ steps.config.outputs.approval-mode }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -70,35 +75,30 @@ jobs:
       - name: Load configuration
         id: config
         run: |
+          set -eo pipefail
+          # config.global references ${ENVIRONMENT}; set a placeholder for load-only.
+          export ENVIRONMENT="${ENVIRONMENT:-staging}"
+          # shellcheck source=/dev/null
           source config.global
-          echo "aws-role-arn=$AWS_ROLE_ARN" >> $GITHUB_OUTPUT
-          echo "aws-region=$AWS_DEFAULT_REGION" >> $GITHUB_OUTPUT
+          mode="${GITHUB_APPROVAL_MODE:-dispatch}"
+          case "$mode" in
+            environment|dispatch) ;;
+            *)
+              echo "Unknown GITHUB_APPROVAL_MODE='$mode'; using dispatch" >&2
+              mode=dispatch
+              ;;
+          esac
+          echo "aws-role-arn=$AWS_ROLE_ARN" >> "$GITHUB_OUTPUT"
+          echo "aws-region=$AWS_DEFAULT_REGION" >> "$GITHUB_OUTPUT"
+          echo "approval-mode=$mode" >> "$GITHUB_OUTPUT"
+          echo "Approval mode: $mode"
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ steps.config.outputs.aws-role-arn }}
-          aws-region: ${{ steps.config.outputs.aws-region }}
-
-      - name: Install Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.10.3
-
-      - name: Docker Setup Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Deploy to Staging
-        # env:
-        #   TF_VAR_SECRET_DATA: ${{ secrets.SECRET_DATA_STAGING }}
-        run: |
-          chmod +x ./*.sh
-          ENVIRONMENT=staging ./deploy.sh
-
-  deploy-production:
-    needs: test
+  plan-staging:
+    needs: [test, load-config]
     runs-on: ubuntu-latest
-    if: github.event_name == 'release'
+    if: |
+      (github.ref == 'refs/heads/main' && github.event_name == 'push') ||
+      (github.event_name == 'workflow_dispatch' && inputs.environment == 'staging' && inputs.action == 'deploy')
     permissions:
       id-token: write
       contents: read
@@ -106,38 +106,198 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Load configuration
-        id: config
-        run: |
-          source config.global
-          echo "aws-role-arn=$AWS_ROLE_ARN" >> $GITHUB_OUTPUT
-          echo "aws-region=$AWS_DEFAULT_REGION" >> $GITHUB_OUTPUT
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ steps.config.outputs.aws-role-arn }}
-          aws-region: ${{ steps.config.outputs.aws-region }}
+          role-to-assume: ${{ needs.load-config.outputs.aws-role-arn }}
+          aws-region: ${{ needs.load-config.outputs.aws-region }}
 
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.10.3
+          terraform_wrapper: false
 
       - name: Docker Setup Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Deploy to Production
-        # env:
-        #   TF_VAR_SECRET_DATA: ${{ secrets.SECRET_DATA_PROD }}
+      - name: Plan staging
         run: |
           chmod +x ./*.sh
-          ENVIRONMENT=prod ./deploy.sh
+          ENVIRONMENT=staging ./deploy.sh plan
+
+      - name: Publish plan summary
+        if: always()
+        run: |
+          if [ -f terraform/main/tfplan.txt ]; then
+            {
+              echo "## Terraform plan (staging)"
+              echo '```'
+              head -n 200 terraform/main/tfplan.txt
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload plan artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-staging
+          path: |
+            terraform/main/tfplan
+            terraform/main/tfplan.txt
+            terraform/main/.terraform.lock.hcl
+          retention-days: 5
+
+  apply-staging:
+    needs: [test, load-config, plan-staging]
+    runs-on: ubuntu-latest
+    if: |
+      always() &&
+      needs.plan-staging.result == 'success' &&
+      (
+        (needs.load-config.outputs.approval-mode == 'environment' && github.ref == 'refs/heads/main' && github.event_name == 'push') ||
+        (github.event_name == 'workflow_dispatch' && inputs.environment == 'staging' && inputs.action == 'deploy')
+      )
+    environment: staging
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ needs.load-config.outputs.aws-role-arn }}
+          aws-region: ${{ needs.load-config.outputs.aws-region }}
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.10.3
+          terraform_wrapper: false
+
+      - name: Docker Setup Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Download plan artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan-staging
+          path: terraform/main
+
+      - name: Apply staging plan
+        run: |
+          chmod +x ./*.sh
+          ENVIRONMENT=staging ./deploy.sh apply
+
+  plan-production:
+    needs: [test, load-config]
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'release' ||
+      (github.event_name == 'workflow_dispatch' && inputs.environment == 'prod' && inputs.action == 'deploy')
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ needs.load-config.outputs.aws-role-arn }}
+          aws-region: ${{ needs.load-config.outputs.aws-region }}
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.10.3
+          terraform_wrapper: false
+
+      - name: Docker Setup Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Plan production
+        run: |
+          chmod +x ./*.sh
+          ENVIRONMENT=prod ./deploy.sh plan
+
+      - name: Publish plan summary
+        if: always()
+        run: |
+          if [ -f terraform/main/tfplan.txt ]; then
+            {
+              echo "## Terraform plan (production)"
+              echo '```'
+              head -n 200 terraform/main/tfplan.txt
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload plan artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-production
+          path: |
+            terraform/main/tfplan
+            terraform/main/tfplan.txt
+            terraform/main/.terraform.lock.hcl
+          retention-days: 5
+
+  apply-production:
+    needs: [test, load-config, plan-production]
+    runs-on: ubuntu-latest
+    if: |
+      always() &&
+      needs.plan-production.result == 'success' &&
+      (
+        (needs.load-config.outputs.approval-mode == 'environment' && github.event_name == 'release') ||
+        (github.event_name == 'workflow_dispatch' && inputs.environment == 'prod' && inputs.action == 'deploy')
+      )
+    environment: production
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ needs.load-config.outputs.aws-role-arn }}
+          aws-region: ${{ needs.load-config.outputs.aws-region }}
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.10.3
+          terraform_wrapper: false
+
+      - name: Docker Setup Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Download plan artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan-production
+          path: terraform/main
+
+      - name: Apply production plan
+        run: |
+          chmod +x ./*.sh
+          ENVIRONMENT=prod ./deploy.sh apply
 
   destroy-staging:
-    needs: test
+    needs: [test, load-config]
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/destroy-staging-')
+    if: |
+      startsWith(github.ref, 'refs/tags/destroy-staging-') ||
+      (github.event_name == 'workflow_dispatch' && inputs.environment == 'staging' && inputs.action == 'destroy')
+    environment: staging
     permissions:
       id-token: write
       contents: read
@@ -145,38 +305,33 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Load configuration
-        id: config
-        run: |
-          source config.global
-          echo "aws-role-arn=$AWS_ROLE_ARN" >> $GITHUB_OUTPUT
-          echo "aws-region=$AWS_DEFAULT_REGION" >> $GITHUB_OUTPUT
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ steps.config.outputs.aws-role-arn }}
-          aws-region: ${{ steps.config.outputs.aws-region }}
+          role-to-assume: ${{ needs.load-config.outputs.aws-role-arn }}
+          aws-region: ${{ needs.load-config.outputs.aws-region }}
 
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.10.3
+          terraform_wrapper: false
 
       - name: Docker Setup Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Destroy Staging
-        # env:
-        #   TF_VAR_SECRET_DATA: ${{ secrets.SECRET_DATA_STAGING }}
         run: |
           chmod +x ./*.sh
-          ENVIRONMENT=staging ./deploy.sh -d
+          ENVIRONMENT=staging ./deploy.sh destroy
 
   destroy-production:
-    needs: test
+    needs: [test, load-config]
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/destroy-prod-')
+    if: |
+      startsWith(github.ref, 'refs/tags/destroy-prod-') ||
+      (github.event_name == 'workflow_dispatch' && inputs.environment == 'prod' && inputs.action == 'destroy')
+    environment: production
     permissions:
       id-token: write
       contents: read
@@ -184,71 +339,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Load configuration
-        id: config
-        run: |
-          source config.global
-          echo "aws-role-arn=$AWS_ROLE_ARN" >> $GITHUB_OUTPUT
-          echo "aws-region=$AWS_DEFAULT_REGION" >> $GITHUB_OUTPUT
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ steps.config.outputs.aws-role-arn }}
-          aws-region: ${{ steps.config.outputs.aws-region }}
+          role-to-assume: ${{ needs.load-config.outputs.aws-role-arn }}
+          aws-region: ${{ needs.load-config.outputs.aws-region }}
 
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.10.3
+          terraform_wrapper: false
 
       - name: Docker Setup Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Destroy Production
-        # env:
-        #   TF_VAR_SECRET_DATA: ${{ secrets.SECRET_DATA_PROD }}
         run: |
           chmod +x ./*.sh
-          ENVIRONMENT=prod ./deploy.sh -d
-
-  manual:
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch'
-    permissions:
-      id-token: write
-      contents: read
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Load configuration
-        id: config
-        run: |
-          source config.global
-          echo "aws-role-arn=$AWS_ROLE_ARN" >> $GITHUB_OUTPUT
-          echo "aws-region=$AWS_DEFAULT_REGION" >> $GITHUB_OUTPUT
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ steps.config.outputs.aws-role-arn }}
-          aws-region: ${{ steps.config.outputs.aws-region }}
-
-      - name: Install Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.10.3
-
-      - name: Docker Setup Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Deploy or destroy
-        run: |
-          chmod +x ./*.sh
-          if [ "${{ inputs.action }}" = "destroy" ]; then
-            ENVIRONMENT=${{ inputs.environment }} ./deploy.sh -d
-          else
-            ENVIRONMENT=${{ inputs.environment }} ./deploy.sh
-          fi
+          ENVIRONMENT=prod ./deploy.sh destroy

@@ -1,4 +1,8 @@
 # NOTE: Do not call this directly - it is called from ./deploy.sh
+# Local convenience: plan + apply -auto-approve (no saved-plan gate).
+# CI should use _run_terraform_plan.sh then _run_terraform_apply_plan.sh.
+
+set -euo pipefail
 
 #########################################################
 # Generate the backend.tf file for main
@@ -21,13 +25,13 @@ EOF
 # Run Terraform
 #########################################################
 
-# Initialize terraform
 terraform init
 
-echo "Creating resources..."
 apply_log=$(mktemp)
-apply_code=0
-terraform apply -auto-approve 2>&1 | tee "$apply_log" || apply_code=${PIPESTATUS[0]}
+trap 'rm -f "$apply_log"' EXIT
+echo "Creating resources..."
+terraform apply -auto-approve 2>&1 | tee "$apply_log"
+apply_code=${PIPESTATUS[0]}
 
 if [[ $apply_code -ne 0 ]] && grep -q "Error: Cycle" "$apply_log"; then
   echo "Cycle detected (switching trigger type). Running two-phase apply: first disable all triggers, then apply desired trigger."
@@ -37,7 +41,5 @@ if [[ $apply_code -ne 0 ]] && grep -q "Error: Cycle" "$apply_log"; then
   export TF_VAR_trigger_type="$saved_trigger"
   terraform apply -auto-approve
 elif [[ $apply_code -ne 0 ]]; then
-  rm -f "$apply_log"
   exit $apply_code
 fi
-rm -f "$apply_log"

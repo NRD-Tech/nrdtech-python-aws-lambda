@@ -28,6 +28,12 @@ export AWS_REGION=${AWS_DEFAULT_REGION}
 export AWS_ROLE_ARN=arn:aws:iam::1234567890:role/pipelines-cd-abc123
 export AWS_WEB_IDENTITY_TOKEN_FILE=$(pwd)/web-identity-token
 
+# GitHub Actions deploy gating (see .github/workflows/github_flow.yml)
+#   dispatch    — Team-safe default: plan on push/release; apply via workflow_dispatch
+#   environment — Enterprise: apply jobs wait on Environment required reviewers
+export GITHUB_ORG=
+export GITHUB_APPROVAL_MODE=dispatch
+
 # Lambda timeout and memory settings
 export APP_TIMEOUT=60  # seconds
 export APP_MEMORY=128  # memory in MB

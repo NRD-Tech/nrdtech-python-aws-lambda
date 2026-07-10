@@ -93,6 +93,65 @@ def test_is_placeholder_role():
 
 
 # ---------------------------------------------------------------------------
+# AWS region detection
+# ---------------------------------------------------------------------------
+def test_detect_probable_aws_region_from_env(monkeypatch):
+    monkeypatch.setenv("AWS_REGION", "eu-central-1")
+    monkeypatch.delenv("AWS_DEFAULT_REGION", raising=False)
+    assert setup_project.detect_probable_aws_region() == "eu-central-1"
+
+
+def test_resolve_aws_region_prefers_cli(monkeypatch):
+    monkeypatch.delenv("AWS_REGION", raising=False)
+    monkeypatch.delenv("AWS_DEFAULT_REGION", raising=False)
+    assert setup_project.resolve_aws_region("ap-southeast-2", {}) == "ap-southeast-2"
+
+
+def test_resolve_aws_region_keeps_configured_project(monkeypatch):
+    monkeypatch.setenv("AWS_REGION", "us-west-2")
+    current = {
+        "aws_region": "us-east-1",
+        "terraform_state_bucket": "real-bucket",
+    }
+    assert setup_project.resolve_aws_region("", current) == "us-east-1"
+
+
+def test_resolve_aws_region_detects_for_fresh_template(monkeypatch):
+    monkeypatch.setenv("AWS_REGION", "ca-central-1")
+    current = {
+        "aws_region": "us-west-2",
+        "terraform_state_bucket": setup_project.TERRAFORM_STATE_BUCKET_PLACEHOLDER,
+    }
+    assert setup_project.resolve_aws_region("", current) == "ca-central-1"
+
+
+def test_approval_mode_for_plan():
+    assert setup_project.approval_mode_for_plan("enterprise") == "environment"
+    assert setup_project.approval_mode_for_plan("team") == "dispatch"
+    assert setup_project.approval_mode_for_plan("") == "dispatch"
+
+
+def test_parse_gh_auth_accounts():
+    text = """
+github.com
+  ✓ Logged in to github.com account alice (keyring)
+  - Active account: true
+  ✓ Logged in to github.com account bob (keyring)
+  - Active account: false
+"""
+    accounts = setup_project.parse_gh_auth_accounts(text)
+    assert accounts[0]["login"] == "alice"
+    assert accounts[0]["active"] is True
+    assert accounts[1]["login"] == "bob"
+    assert accounts[1]["active"] is False
+
+
+def test_find_gh_executable_respects_which(monkeypatch):
+    monkeypatch.setattr(setup_project.shutil, "which", lambda _: "/usr/bin/gh")
+    assert setup_project.find_gh_executable() == "/usr/bin/gh"
+
+
+# ---------------------------------------------------------------------------
 # CLI --help
 # ---------------------------------------------------------------------------
 def test_main_help_exits_zero():
