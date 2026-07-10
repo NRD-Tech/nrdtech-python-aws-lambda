@@ -1,4 +1,4 @@
-FROM public.ecr.aws/lambda/python:3.12
+FROM public.ecr.aws/lambda/python:3.14
 
 # Install Poetry
 RUN curl -sSL https://install.python-poetry.org | python3 -
@@ -16,7 +16,7 @@ RUN ~/.local/bin/poetry install --only main
 
 # Locate Poetry's virtual environment and copy dependencies to the Lambda path
 RUN VENV_PATH=$(~/.local/bin/poetry env info --path) && \
-    cp -r ${VENV_PATH}/lib/python3.12/site-packages/* ${LAMBDA_TASK_ROOT}/
+    cp -r ${VENV_PATH}/lib/python3.14/site-packages/* ${LAMBDA_TASK_ROOT}/
 
 # Copy function code
 COPY app/ ${LAMBDA_TASK_ROOT}/app/

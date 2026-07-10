@@ -57,8 +57,8 @@ data "aws_subnets" "public" {
     values = [data.aws_vpc.selected.id]
   }
   filter {
-    name   = "tag:Name"
-    values = ["*public*"]
+    name   = "map-public-ip-on-launch"
+    values = ["true"]
   }
 }
 data "aws_subnets" "private" {
@@ -67,8 +67,8 @@ data "aws_subnets" "private" {
     values = [data.aws_vpc.selected.id]
   }
   filter {
-    name   = "tag:Name"
-    values = ["*private*"]
+    name   = "map-public-ip-on-launch"
+    values = ["false"]
   }
 }
 data "aws_route_tables" "private" {

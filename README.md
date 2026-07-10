@@ -4,7 +4,7 @@ This is a project template for a python application that will be triggered eithe
 # Quick Start
 
 ## Prerequisites
-- Python 3.12 and Poetry installed
+- Python 3.14 and Poetry installed
 - AWS account with OIDC role and Terraform state bucket configured (see [OIDC Pre-Requisite](#oidc-pre-requisite))
 - Docker installed and running
 - Git repository set up
@@ -156,7 +156,7 @@ echo "PYTHONPATH=app" > .env
 ---
 
 # Technology Stack
-* Python 3.12
+* Python 3.14
 * Docker
 * Terraform
 
@@ -183,21 +183,21 @@ git commit -m 'init'
 * If you want to change the license to be proprietary follow these instructions: [Go to Proprietary Licensing Section](#how-to-use-this-template-for-a-proprietary-project)
 
 ## Dev Environment Pre-Requisites
-1. Make sure Python 3.12 and Poetry are installed on your computer
+1. Make sure Python 3.14 and Poetry are installed on your computer
 ```
 # Mac Terminal
 # Install brew if you haven't already
 # /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-brew install python@3.12 poetry
+brew install python@3.14 poetry
 ```
 ```
 # Windows PowerShell (run as an Administrator)
 # Install choco if you haven't already
 # https://chocolatey.org/install
 
-# Install Python 3.12
-choco install python --version=3.12 -y
+# Install Python 3.14
+choco install python --version=3.14 -y
 
 # Install Poetry globally
 $env:POETRY_HOME = "C:\Program Files\Poetry"
@@ -217,8 +217,8 @@ poetry config virtualenvs.in-project true
 1. Open the folder containing the project
 2. Run the following in the terminal to set up the virtual environment
 ```
-# Assure the use of python3.12
-poetry env use python3.12
+# Assure the use of python3.14
+poetry env use python3.14
 
 # Set up the virtual environment and installs dependencies
 poetry install
@@ -240,7 +240,7 @@ poetry env info
   * Configure:
     * Environment: Generate new
     * Type: Poetry
-    * Base python: <path to your python 3.12>
+    * Base python: <path to your python 3.14>
     * Path to poetry: <path to poetry>
   * Click OK
   * Note: Sometimes I need to restart PyCharm after this for it to recognize the new interpereter correctly

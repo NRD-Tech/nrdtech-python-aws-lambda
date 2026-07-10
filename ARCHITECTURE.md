@@ -135,7 +135,7 @@ sequenceDiagram
 
 ### Prerequisites
 
-- **Python 3.12** and **Poetry**
+- **Python 3.14** and **Poetry**
 - **Docker** (for deploy and for optional local Lambda run)
 - **`.env`** in project root: `PYTHONPATH=app`
 
@@ -144,7 +144,7 @@ sequenceDiagram
 ```bash
 # Venv in project
 poetry config virtualenvs.in-project true
-poetry env use python3.12
+poetry env use python3.14
 poetry install
 
 # .env
