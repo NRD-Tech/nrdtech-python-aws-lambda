@@ -60,3 +60,10 @@ terraform/main/remote_backend.tf
 *.db
 
 .coverage
+
+# Terraform plan artifacts / local deploy tokens
+tfplan
+tfplan.txt
+**/tfplan
+**/tfplan.txt
+web-identity-token

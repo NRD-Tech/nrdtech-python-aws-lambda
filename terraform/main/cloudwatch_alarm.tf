@@ -28,3 +28,11 @@ resource "aws_cloudwatch_metric_alarm" "failure_metric_alarm" {
     return_data = true
   }
 }
+
+resource "aws_sns_topic_subscription" "alerts_email" {
+  count = var.ENVIRONMENT == "prod" && var.ALERT_EMAIL != "" ? 1 : 0
+
+  topic_arn = aws_sns_topic.sns_topic.arn
+  protocol  = "email"
+  endpoint  = var.ALERT_EMAIL
+}

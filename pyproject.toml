@@ -15,12 +15,27 @@ uvicorn = "^0.51.0"
 mangum = "^0.21.0"
 python-dotenv = "^1.2.2"
 pydantic = "^2.13.4"
+structlog = "^25.4.0"
+python-json-logger = "^3.3.0"
 
 [tool.poetry.group.dev.dependencies]
-black = "^26.5.1"
+ruff = "^0.12.0"
+mypy = "^1.16.0"
 pytest = "^9.1.1"
 pytest-cov = "^7.1.0"
 httpx = "^0.28.1"
+
+[tool.ruff]
+line-length = 120
+target-version = "py314"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.mypy]
+python_version = "3.14"
+strict = true
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests/unit"]
@@ -29,3 +44,8 @@ python_files = ["test_*.py", "*_test.py", "*_test_*.py"]
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff.lint.per-file-ignores]
+"setup_lib/*" = ["E501"]
+"setup.py" = ["E501", "E402"]
+"tests/**" = ["E501", "E402"]

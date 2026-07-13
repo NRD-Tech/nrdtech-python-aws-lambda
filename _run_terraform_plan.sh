@@ -14,6 +14,7 @@ terraform {
     bucket = "${TERRAFORM_STATE_BUCKET}"
     key    = "terraform-${TERRAFORM_STATE_IDENT}.tfstate"
     region = "${AWS_DEFAULT_REGION}"
+    use_lockfile = true
   }
 }
 EOF

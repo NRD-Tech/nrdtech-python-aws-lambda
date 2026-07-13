@@ -1,4 +1,5 @@
 """Unit tests for setup.py (project setup script)."""
+
 import importlib.util
 import os
 import sys
@@ -15,6 +16,8 @@ setup_project = importlib.util.module_from_spec(_SPEC)
 sys.modules["setup_project"] = setup_project
 _SPEC.loader.exec_module(setup_project)
 
+import setup_lib.constants as _setup_constants
+
 
 # ---------------------------------------------------------------------------
 # _parse_export_file
@@ -25,7 +28,7 @@ def test_parse_export_file_missing_returns_empty():
 
 def test_parse_export_file_parses_export_lines():
     with tempfile.NamedTemporaryFile(mode="w", suffix=".sh", delete=False) as f:
-        f.write('export FOO=bar\n')
+        f.write("export FOO=bar\n")
         f.write('export BAR="baz"\n')
         f.write("export QUX='quux'\n")
         f.write("# export SKIP=no\n")
@@ -193,28 +196,33 @@ def test_non_interactive_full_run_writes_configs(tmp_path, monkeypatch):
     tf_dir = tmp_path / "terraform" / "main"
     tf_dir.mkdir(parents=True)
     for tf_name in setup_project.TF_FILE_BY_TYPE.values():
-        (tf_dir / tf_name).write_text("# resource \"aws_lambda_function\" \"fn\" {\n# }\n")
+        (tf_dir / tf_name).write_text('# resource "aws_lambda_function" "fn" {\n# }\n')
 
     app_dir = tmp_path / "app"
     app_dir.mkdir()
     for handler_name in setup_project.HANDLER_FILE_BY_TYPE.values():
         (app_dir / handler_name).write_text("def handler(event, context): pass\n")
 
-    monkeypatch.setattr(setup_project, "SCRIPT_DIR", str(tmp_path))
-    monkeypatch.setattr(setup_project, "TERRAFORM_MAIN", str(tf_dir))
-    monkeypatch.setattr(setup_project, "APP_DIR", str(app_dir))
-    monkeypatch.setattr(setup_project, "CONFIG_GLOBAL", str(tmp_path / "config.global"))
-    monkeypatch.setattr(setup_project, "CONFIG_STAGING", str(tmp_path / "config.staging"))
-    monkeypatch.setattr(setup_project, "CONFIG_PROD", str(tmp_path / "config.prod"))
+    monkeypatch.setattr(_setup_constants, "SCRIPT_DIR", str(tmp_path))
+    monkeypatch.setattr(_setup_constants, "TERRAFORM_MAIN", str(tf_dir))
+    monkeypatch.setattr(_setup_constants, "APP_DIR", str(app_dir))
+    monkeypatch.setattr(_setup_constants, "CONFIG_GLOBAL", str(tmp_path / "config.global"))
+    monkeypatch.setattr(_setup_constants, "CONFIG_STAGING", str(tmp_path / "config.staging"))
+    monkeypatch.setattr(_setup_constants, "CONFIG_PROD", str(tmp_path / "config.prod"))
 
     orig = sys.argv
     try:
         sys.argv = [
-            "setup.py", "--non-interactive",
-            "--app-type", "api",
-            "--app-name", "test-app",
-            "--terraform-state-bucket", "my-bucket",
-            "--aws-role-arn", "arn:aws:iam::999:role/test",
+            "setup.py",
+            "--non-interactive",
+            "--app-type",
+            "api",
+            "--app-name",
+            "test-app",
+            "--terraform-state-bucket",
+            "my-bucket",
+            "--aws-role-arn",
+            "arn:aws:iam::999:role/test",
         ]
         result = setup_project.main()
         assert result == 0
@@ -246,30 +254,37 @@ def test_non_interactive_shared_project_name(tmp_path, monkeypatch):
     tf_dir = tmp_path / "terraform" / "main"
     tf_dir.mkdir(parents=True)
     for tf_name in setup_project.TF_FILE_BY_TYPE.values():
-        (tf_dir / tf_name).write_text("# resource \"aws_lambda_function\" \"fn\" {\n# }\n")
+        (tf_dir / tf_name).write_text('# resource "aws_lambda_function" "fn" {\n# }\n')
 
     app_dir = tmp_path / "app"
     app_dir.mkdir()
     for handler_name in setup_project.HANDLER_FILE_BY_TYPE.values():
         (app_dir / handler_name).write_text("def handler(event, context): pass\n")
 
-    monkeypatch.setattr(setup_project, "SCRIPT_DIR", str(tmp_path))
-    monkeypatch.setattr(setup_project, "TERRAFORM_MAIN", str(tf_dir))
-    monkeypatch.setattr(setup_project, "APP_DIR", str(app_dir))
-    monkeypatch.setattr(setup_project, "CONFIG_GLOBAL", str(tmp_path / "config.global"))
-    monkeypatch.setattr(setup_project, "CONFIG_STAGING", str(tmp_path / "config.staging"))
-    monkeypatch.setattr(setup_project, "CONFIG_PROD", str(tmp_path / "config.prod"))
+    monkeypatch.setattr(_setup_constants, "SCRIPT_DIR", str(tmp_path))
+    monkeypatch.setattr(_setup_constants, "TERRAFORM_MAIN", str(tf_dir))
+    monkeypatch.setattr(_setup_constants, "APP_DIR", str(app_dir))
+    monkeypatch.setattr(_setup_constants, "CONFIG_GLOBAL", str(tmp_path / "config.global"))
+    monkeypatch.setattr(_setup_constants, "CONFIG_STAGING", str(tmp_path / "config.staging"))
+    monkeypatch.setattr(_setup_constants, "CONFIG_PROD", str(tmp_path / "config.prod"))
 
     orig = sys.argv
     try:
         sys.argv = [
-            "setup.py", "--non-interactive",
-            "--app-type", "scheduled",
-            "--app-name", "backend-api",
-            "--project-name", "checkout",
-            "--manage-project-resource-group", "false",
-            "--terraform-state-bucket", "my-bucket",
-            "--aws-role-arn", "arn:aws:iam::999:role/test",
+            "setup.py",
+            "--non-interactive",
+            "--app-type",
+            "scheduled",
+            "--app-name",
+            "backend-api",
+            "--project-name",
+            "checkout",
+            "--manage-project-resource-group",
+            "false",
+            "--terraform-state-bucket",
+            "my-bucket",
+            "--aws-role-arn",
+            "arn:aws:iam::999:role/test",
         ]
         result = setup_project.main()
         assert result == 0
@@ -289,28 +304,33 @@ def test_non_interactive_sqs_triggered_type(tmp_path, monkeypatch):
     tf_dir = tmp_path / "terraform" / "main"
     tf_dir.mkdir(parents=True)
     for tf_name in setup_project.TF_FILE_BY_TYPE.values():
-        (tf_dir / tf_name).write_text("# resource \"aws_lambda_function\" \"fn\" {\n# }\n")
+        (tf_dir / tf_name).write_text('# resource "aws_lambda_function" "fn" {\n# }\n')
 
     app_dir = tmp_path / "app"
     app_dir.mkdir()
     for handler_name in setup_project.HANDLER_FILE_BY_TYPE.values():
         (app_dir / handler_name).write_text("def handler(event, context): pass\n")
 
-    monkeypatch.setattr(setup_project, "SCRIPT_DIR", str(tmp_path))
-    monkeypatch.setattr(setup_project, "TERRAFORM_MAIN", str(tf_dir))
-    monkeypatch.setattr(setup_project, "APP_DIR", str(app_dir))
-    monkeypatch.setattr(setup_project, "CONFIG_GLOBAL", str(tmp_path / "config.global"))
-    monkeypatch.setattr(setup_project, "CONFIG_STAGING", str(tmp_path / "config.staging"))
-    monkeypatch.setattr(setup_project, "CONFIG_PROD", str(tmp_path / "config.prod"))
+    monkeypatch.setattr(_setup_constants, "SCRIPT_DIR", str(tmp_path))
+    monkeypatch.setattr(_setup_constants, "TERRAFORM_MAIN", str(tf_dir))
+    monkeypatch.setattr(_setup_constants, "APP_DIR", str(app_dir))
+    monkeypatch.setattr(_setup_constants, "CONFIG_GLOBAL", str(tmp_path / "config.global"))
+    monkeypatch.setattr(_setup_constants, "CONFIG_STAGING", str(tmp_path / "config.staging"))
+    monkeypatch.setattr(_setup_constants, "CONFIG_PROD", str(tmp_path / "config.prod"))
 
     orig = sys.argv
     try:
         sys.argv = [
-            "setup.py", "--non-interactive",
-            "--app-type", "sqs_triggered",
-            "--app-name", "queue-worker",
-            "--terraform-state-bucket", "my-bucket",
-            "--aws-role-arn", "arn:aws:iam::999:role/test",
+            "setup.py",
+            "--non-interactive",
+            "--app-type",
+            "sqs_triggered",
+            "--app-name",
+            "queue-worker",
+            "--terraform-state-bucket",
+            "my-bucket",
+            "--aws-role-arn",
+            "arn:aws:iam::999:role/test",
         ]
         result = setup_project.main()
         assert result == 0

@@ -1,27 +1,19 @@
+FROM public.ecr.aws/lambda/python:3.14 AS builder
+
+RUN curl -sSL https://install.python-poetry.org | python3 -
+ENV PATH="/root/.local/bin:${PATH}"
+
+COPY pyproject.toml poetry.lock ./
+RUN poetry config virtualenvs.in-project true && \
+    poetry install --only main --no-interaction --no-ansi --no-root
+
 FROM public.ecr.aws/lambda/python:3.14
 
-# Install Poetry
-RUN curl -sSL https://install.python-poetry.org | python3 -
-
-# Copy pyproject.toml and poetry.lock for dependency installation
-COPY pyproject.toml poetry.lock ./
-
-# NOTE: Use this if you need to access private codeartifact shared python libraries
-# ARG CODEARTIFACT_TOKEN
-# ENV CODEARTIFACT_TOKEN=${CODEARTIFACT_TOKEN}
-# RUN ~/.local/bin/poetry config http-basic.mycompany aws ${CODEARTIFACT_TOKEN}
-
-# Install dependencies using Poetry (only production dependencies)
-RUN ~/.local/bin/poetry install --only main
-
-# Locate Poetry's virtual environment and copy dependencies to the Lambda path
-RUN VENV_PATH=$(~/.local/bin/poetry env info --path) && \
-    cp -r ${VENV_PATH}/lib/python3.14/site-packages/* ${LAMBDA_TASK_ROOT}/
-
-# Copy function code
+# Lambda images run as a dedicated non-root runtime user provided by the base image.
+COPY --from=builder /var/task/.venv/lib/python3.14/site-packages/ ${LAMBDA_TASK_ROOT}/
 COPY app/ ${LAMBDA_TASK_ROOT}/app/
 
-ENV PYTHONPATH="${PYTHONPATH}:${LAMBDA_TASK_ROOT}:${LAMBDA_TASK_ROOT}/app"
+ENV PYTHONPATH="${PYTHONPATH}:${LAMBDA_TASK_ROOT}:${LAMBDA_TASK_ROOT}/app" \
+    PYTHONUNBUFFERED=1
 
-# Set the CMD to your handler
 CMD ["app.lambda_handler.lambda_handler"]

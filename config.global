@@ -34,6 +34,9 @@ export AWS_WEB_IDENTITY_TOKEN_FILE=$(pwd)/web-identity-token
 export GITHUB_ORG=
 export GITHUB_APPROVAL_MODE=dispatch
 
+# Optional: email for CloudWatch alarm SNS subscription (prod)
+# export ALERT_EMAIL=ops@example.com
+
 # Lambda timeout and memory settings
 export APP_TIMEOUT=60  # seconds
 export APP_MEMORY=128  # memory in MB

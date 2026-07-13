@@ -18,6 +18,9 @@ on:
   pull_request:
     branches:
       - main
+  schedule:
+    # Weekly drift detection (Monday 14:00 UTC)
+    - cron: '0 14 * * 1'
   workflow_dispatch:
     inputs:
       environment:
@@ -36,6 +39,10 @@ on:
         options:
           - deploy
           - destroy
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.inputs.environment || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   test:
@@ -59,8 +66,13 @@ jobs:
       - name: Install dependencies
         run: poetry install --no-interaction --no-root
 
+      - name: Lint
+        run: |
+          poetry run ruff check app tests setup_lib setup.py
+          poetry run mypy app
+
       - name: Run tests
-        run: poetry run pytest tests/unit
+        run: poetry run pytest tests/unit --cov=app --cov-fail-under=60
 
   load-config:
     runs-on: ubuntu-latest
@@ -92,6 +104,160 @@ jobs:
           echo "aws-region=$AWS_DEFAULT_REGION" >> "$GITHUB_OUTPUT"
           echo "approval-mode=$mode" >> "$GITHUB_OUTPUT"
           echo "Approval mode: $mode"
+
+
+  plan-pr:
+    needs: [test, load-config]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ needs.load-config.outputs.aws-role-arn }}
+          aws-region: ${{ needs.load-config.outputs.aws-region }}
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.10.3
+          terraform_wrapper: false
+
+      - name: Docker Setup Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Plan staging (PR preview)
+        run: |
+          chmod +x ./*.sh
+          ENVIRONMENT=staging ./deploy.sh plan
+
+      - name: Publish plan summary
+        if: always()
+        run: |
+          if [ -f terraform/main/tfplan.txt ]; then
+            {
+              echo "## Terraform plan (staging — PR preview)"
+              echo '```'
+              head -n 200 terraform/main/tfplan.txt
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            {
+              echo "## Terraform plan (staging)"
+              echo
+              echo '<details><summary>Click to expand</summary>'
+              echo
+              echo '```'
+              head -n 200 terraform/main/tfplan.txt
+              echo '```'
+              echo
+              echo '</details>'
+            } > /tmp/tfplan-comment.md
+          else
+            echo "## Terraform plan (staging)" > /tmp/tfplan-comment.md
+            echo "Plan unavailable — see workflow logs." >> /tmp/tfplan-comment.md
+          fi
+
+      - name: Comment plan on PR
+        if: always()
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: terraform-plan-staging
+          recreate: true
+          path: /tmp/tfplan-comment.md
+
+  terraform-scan:
+    needs: [test]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || (github.ref == 'refs/heads/main' && github.event_name == 'push')
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy config scan (Terraform)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: config
+          scan-ref: terraform/main
+          severity: CRITICAL,HIGH
+          exit-code: '1'
+          ignore-unfixed: true
+
+  drift-detect:
+    needs: [load-config]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    permissions:
+      id-token: write
+      contents: write
+      issues: write
+    strategy:
+      fail-fast: false
+      matrix:
+        environment: [staging, prod]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ needs.load-config.outputs.aws-role-arn }}
+          aws-region: ${{ needs.load-config.outputs.aws-region }}
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.10.3
+          terraform_wrapper: false
+
+      - name: Docker Setup Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Plan for drift
+        id: plan
+        run: |
+          chmod +x ./*.sh
+          ENVIRONMENT=${{ matrix.environment }} ./deploy.sh plan
+          # Non-empty plan that is not "No changes" indicates drift
+          if grep -Eq 'Plan: [1-9]|to add|to change|to destroy' terraform/main/tfplan.txt; then
+            echo "drift=true" >> "$GITHUB_OUTPUT"
+            echo "Drift detected for ${{ matrix.environment }}"
+            cat terraform/main/tfplan.txt | head -n 100
+          else
+            echo "drift=false" >> "$GITHUB_OUTPUT"
+            echo "No drift for ${{ matrix.environment }}"
+          fi
+
+      - name: Open or update drift issue
+        if: steps.plan.outputs.drift == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          title="Terraform drift detected (${{ matrix.environment }})"
+          body="Scheduled drift detection found a non-empty plan for **${{ matrix.environment }}**.
+
+          See the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.
+
+          \`\`\`
+          $(head -n 80 terraform/main/tfplan.txt)
+          \`\`\`"
+          existing=$(gh issue list --state open --search "$title in:title" --json number -q '.[0].number' || true)
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "$title" --body "$body"
+          fi
+          exit 1
 
   plan-staging:
     needs: [test, load-config]
